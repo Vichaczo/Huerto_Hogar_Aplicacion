@@ -13,8 +13,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import kotlin.getValue
 
@@ -23,6 +25,8 @@ class MainActivity : ComponentActivity() {
     // Inicializa el HomeViewModel para que su estado persista
     // durante toda la vida de la app y pueda ser compartido.
     private val homeViewModel by viewModels<HomeViewModel>()
+    private val loginViewModel by viewModels<LoginViewModel>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +36,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(homeViewModel)
+                    AppNavigation(homeViewModel,loginViewModel)
                 }
             }
         }
@@ -40,7 +44,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(homeViewModel: HomeViewModel) {
+fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel) {
     // Se crea el controlador de navegación que gestiona el historial de pantallas.
     val navController = rememberNavController()
 
@@ -59,12 +63,10 @@ fun AppNavigation(homeViewModel: HomeViewModel) {
             HomeScreen(navController = navController, homeViewModel = homeViewModel)
         }
 
-        // Aquí definirías las otras pantallas. Las dejo como placeholders.
-        // Es importante pasar el viewModel al LoginScreen para que pueda
-        // notificar cuando el login de admin sea exitoso.
+
         composable("login") {
             // Suponiendo que tienes un LoginScreen Composable
-            // LoginScreen(navController = navController, homeViewModel = homeViewModel)
+            LoginScreen(navController = navController, homeViewModel = homeViewModel, loginViewModel = loginViewModel)
         }
 
         composable("product_list") {

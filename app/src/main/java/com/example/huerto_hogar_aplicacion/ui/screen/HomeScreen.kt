@@ -18,7 +18,7 @@ import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
 
-    // Observa el estado 'isAdmin' del ViewModel.
+    // El estado 'isAdmin' del ViewModel.
     // Cada vez que 'isAdmin' cambia, esta variable se actualiza y la UI se recompone.
     val isAdmin by homeViewModel.isAdmin.collectAsState()
 
