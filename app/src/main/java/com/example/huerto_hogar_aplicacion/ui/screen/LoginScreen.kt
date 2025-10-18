@@ -1,5 +1,6 @@
 package com.example.huerto_hogar_aplicacion.ui.screen
 
+import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +9,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
@@ -28,6 +30,7 @@ import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import kotlinx.coroutines.launch
+import java.util.regex.Pattern
 
 @Composable
 fun LoginScreen(navController: NavController, homeViewModel: HomeViewModel, loginViewModel: LoginViewModel) {
@@ -48,12 +51,12 @@ fun LoginScreen(navController: NavController, homeViewModel: HomeViewModel, logi
             }
         }*/
 
-        Login(Modifier.align(Alignment.Center), loginViewModel)
+        Login(Modifier.align(Alignment.Center), loginViewModel, navController)
     }
 }
 
 @Composable
-fun Login(modifier: Modifier, loginViewModel: LoginViewModel) {
+fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: NavController) {
     val email: String by loginViewModel.email.observeAsState(initial = "")
     val password: String by loginViewModel.password.observeAsState(initial = "")
     val loginEnable: Boolean by loginViewModel.loginEnable.observeAsState(initial = false)
@@ -66,15 +69,12 @@ fun Login(modifier: Modifier, loginViewModel: LoginViewModel) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
     } else {
-
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
-
             Logo()
-
             Spacer(modifier = Modifier.padding(16.dp))
             EmailField(email) { loginViewModel.onLoginChanged(it, password) }
             Spacer(modifier = Modifier.padding(4.dp))
@@ -88,14 +88,11 @@ fun Login(modifier: Modifier, loginViewModel: LoginViewModel) {
                 }
             }
             Spacer(modifier = Modifier.padding(8.dp))
-            RegisterButton(loginEnable) {
-                coroutineScope.launch {
-                    loginViewModel.onRegisterSelected()
-                }
-            }
+            RegisterButton(navController)
         }
     }
 }
+
 
 @Composable
 fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
@@ -115,22 +112,11 @@ fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
         Text(text = "Iniciar sesión")
     }
 }
+
 @Composable
-fun RegisterButton(loginEnable: Boolean, onRegisterSelected: () -> Unit) {
-    Button(
-        onClick = { onRegisterSelected() },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF6D4C41),
-            disabledContainerColor = Color(0xFFA1887F),
-            contentColor = Color.White,
-            disabledContentColor = Color.White
-        ),
-        enabled = loginEnable
-    ) {
-        Text(text = "Registrarse")
+fun RegisterButton(navController: NavController) {
+    TextButton(onClick = { navController.navigate("registro") }) {
+        Text("¿No tienes cuenta? Regístrate", color = Color(0xFF6D4C41))
     }
 }
 
@@ -145,48 +131,99 @@ fun ForgotPassword(modifier: Modifier) {
     )
 }
 
+// CAMPOS DE TEXTO VALIDADOS
+
 @Composable
 fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
-    TextField(
-        value = password,
-        onValueChange = { onTextFieldChanged(it) },
-        placeholder = { Text(text = "Contraseña") },
-        modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        singleLine = true,
-        maxLines = 1,
-        visualTransformation = PasswordVisualTransformation(),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFF636262),
-            unfocusedTextColor = Color(0xFF636262),
-            unfocusedContainerColor = Color(0xFFDEDDDD),
-            focusedContainerColor = Color(0xFFDEDDDD),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+    var isDirty by remember { mutableStateOf(false) }
+    val isValid = password.isNotBlank() && password.length >= 6
+    val helperText = "Contraseña no válida"
+
+    val containerColor = when {
+        !isDirty -> Color(0xFFDEDDDD) // Color inicial
+        isValid -> Color(0xFFC8E6C9) // Verde si es válido
+        else -> Color(0xFFFFCDD2) // Rojo si es inválido
+    }
+
+    Column {
+        TextField(
+            value = password,
+            onValueChange = {
+                isDirty = true
+                onTextFieldChanged(it)
+            },
+            placeholder = { Text(text = "Contraseña") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            singleLine = true,
+            maxLines = 1,
+            visualTransformation = PasswordVisualTransformation(),
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Color(0xFF636262),
+                unfocusedTextColor = Color(0xFF636262),
+                unfocusedContainerColor = containerColor,
+                focusedContainerColor = containerColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
         )
-    )
+        if (isDirty && !isValid) {
+            Text(
+                text = helperText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }
 
 @Composable
 fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
-    TextField(
-        value = email,
-        onValueChange = { onTextFieldChanged(it) },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(text = "Email") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-        singleLine = true,
-        maxLines = 1,
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFF636262),
-            unfocusedTextColor = Color(0xFF636262),
-            unfocusedContainerColor = Color(0xFFDEDDDD),
-            focusedContainerColor = Color(0xFFDEDDDD),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+    var isDirty by remember { mutableStateOf(false) }
+    // Usamos la misma validación de email que en el registro
+    val isValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val helperText = "Correo no válido"
+
+    val containerColor = when {
+        !isDirty -> Color(0xFFDEDDDD) // Color inicial
+        isValid -> Color(0xFFC8E6C9) // Verde si es válido
+        else -> Color(0xFFFFCDD2) // Rojo si es inválido
+    }
+
+    Column {
+        TextField(
+            value = email,
+            onValueChange = {
+                isDirty = true
+                onTextFieldChanged(it)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Email") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
+            maxLines = 1,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Color(0xFF636262),
+                unfocusedTextColor = Color(0xFF636262),
+                unfocusedContainerColor = containerColor,
+                focusedContainerColor = containerColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
         )
-    )
+        if (isDirty && !isValid) {
+            Text(
+                text = helperText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }
+
+// LOGO
 
 @Composable
 fun Logo() {

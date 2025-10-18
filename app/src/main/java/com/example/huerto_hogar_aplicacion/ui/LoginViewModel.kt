@@ -10,7 +10,6 @@ class LoginViewModel : ViewModel() {
 
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
-d
     private val _password = MutableLiveData<String>()
     val password: LiveData<String> = _password
 
@@ -31,11 +30,6 @@ d
     private fun isValidEmail(email: String): Boolean  = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
     suspend fun onLoginSelected() {
-        _isLoading.value = true
-        delay(4000)
-        _isLoading.value = false
-    }
-    suspend fun onRegisterSelected() {
         _isLoading.value = true
         delay(4000)
         _isLoading.value = false

@@ -14,9 +14,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
+import com.example.huerto_hogar_aplicacion.ui.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import kotlin.getValue
 
@@ -27,6 +29,8 @@ class MainActivity : ComponentActivity() {
     private val homeViewModel by viewModels<HomeViewModel>()
     private val loginViewModel by viewModels<LoginViewModel>()
 
+    private val registroViewModel by viewModels<RegistroViewModel>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(homeViewModel,loginViewModel)
+                    AppNavigation(homeViewModel,loginViewModel,registroViewModel)
                 }
             }
         }
@@ -44,7 +48,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel) {
+fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel) {
     // Se crea el controlador de navegación que gestiona el historial de pantallas.
     val navController = rememberNavController()
 
@@ -65,8 +69,11 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel) {
 
 
         composable("login") {
-            // Suponiendo que tienes un LoginScreen Composable
             LoginScreen(navController = navController, homeViewModel = homeViewModel, loginViewModel = loginViewModel)
+        }
+
+        composable("registro") {
+            RegistroScreen(navController = navController,  registroViewModel = registroViewModel)
         }
 
         composable("product_list") {
