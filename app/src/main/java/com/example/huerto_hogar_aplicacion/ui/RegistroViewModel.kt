@@ -4,8 +4,9 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
 
-class RegistroViewModel : ViewModel() {
+class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
     private val _nombre = MutableLiveData<String>()
     val nombre: LiveData<String> = _nombre
 

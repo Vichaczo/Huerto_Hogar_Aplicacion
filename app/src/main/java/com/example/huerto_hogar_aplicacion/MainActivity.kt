@@ -15,22 +15,21 @@ import androidx.navigation.compose.rememberNavController
 import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.RegistroViewModel
+import com.example.huerto_hogar_aplicacion.ui.ViewModelFactory
+import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
-import kotlin.getValue
+import com.example.huerto_hogar_aplicacion.data.AppDatabase
 
 class MainActivity : ComponentActivity() {
 
-    // Inicializa el HomeViewModel para que su estado persista
-    // durante toda la vida de la app y pueda ser compartido.
-    private val homeViewModel by viewModels<HomeViewModel>()
-    private val loginViewModel by viewModels<LoginViewModel>()
 
-    private val registroViewModel by viewModels<RegistroViewModel>()
-
+    private val homeViewModel: HomeViewModel by viewModels() // Este no necesita factory
+    private val loginViewModel: LoginViewModel by viewModels { ViewModelFactory(application) }
+    private val registroViewModel: RegistroViewModel by viewModels { ViewModelFactory(application) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

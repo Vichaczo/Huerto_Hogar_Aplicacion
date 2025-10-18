@@ -4,9 +4,10 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
 import kotlinx.coroutines.delay
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(private val repo: UsuarioRepository) : ViewModel() {
 
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
