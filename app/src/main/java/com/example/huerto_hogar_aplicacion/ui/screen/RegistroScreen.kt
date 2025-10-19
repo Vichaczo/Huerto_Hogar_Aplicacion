@@ -47,7 +47,7 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
     val email: String by registroViewModel.email.observeAsState(initial = "")
     val password: String by registroViewModel.password.observeAsState(initial = "")
     val telefono: String by registroViewModel.telefono.observeAsState(initial = "")
-    val registerEnable: Boolean by registroViewModel.loginEnable.observeAsState(initial = false)
+    val registroEnable: Boolean by registroViewModel.registroEnable.observeAsState(initial = false)
 
     Column(
         modifier = modifier
@@ -87,9 +87,9 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
         // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = {
-                // Aquí iría la lógica para registrar al usuario,
-                // que deberías añadir a tu ViewModel
-                // ej: registroViewModel.onRegisterSelected()
+                // La UI solo notifica al ViewModel. ¡Y listo!
+                registroViewModel.onRegisterButtonClicked()
+                navController.navigate("login")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,7 +100,7 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
                 contentColor = Color.White,
                 disabledContentColor = Color.White
             ),
-            enabled = registerEnable // Se activa solo si todos los campos son válidos
+            enabled = registroEnable
         ) {
             Text(text = "Registrarse")
         }
