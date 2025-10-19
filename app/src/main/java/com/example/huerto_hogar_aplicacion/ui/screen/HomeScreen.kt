@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
-import com.example.huerto_hogar_aplicacion.ui.SessionState
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +94,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Button(
                     onClick = { navController.navigate("crud") },
                     modifier = Modifier.fillMaxWidth(),

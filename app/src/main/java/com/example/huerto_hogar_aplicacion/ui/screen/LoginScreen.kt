@@ -26,11 +26,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
-import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import kotlinx.coroutines.launch
-import java.util.regex.Pattern
 
 @Composable
 fun LoginScreen(navController: NavController, homeViewModel: HomeViewModel, loginViewModel: LoginViewModel) {

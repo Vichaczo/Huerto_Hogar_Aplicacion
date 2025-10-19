@@ -2,7 +2,9 @@ package com.example.huerto_hogar_aplicacion.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 
 // La factory ahora recibe el repositorio, no el 'Application'
 class ViewModelFactory(private val repository: UsuarioRepository) : ViewModelProvider.Factory {

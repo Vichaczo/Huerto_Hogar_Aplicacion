@@ -1,4 +1,4 @@
-package com.example.huerto_hogar_aplicacion.ui
+package com.example.huerto_hogar_aplicacion.ui.viewModelPackage
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

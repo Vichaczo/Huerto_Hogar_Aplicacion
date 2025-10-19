@@ -1,11 +1,11 @@
-package com.example.huerto_hogar_aplicacion.ui
+package com.example.huerto_hogar_aplicacion.ui.viewModelPackage
 
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.huerto_hogar_aplicacion.data.Usuario
-import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 import kotlinx.coroutines.delay
 
 class LoginViewModel(private val repo: UsuarioRepository) : ViewModel() {

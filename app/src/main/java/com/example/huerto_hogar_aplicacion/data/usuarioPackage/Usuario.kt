@@ -1,4 +1,4 @@
-package com.example.huerto_hogar_aplicacion.data
+package com.example.huerto_hogar_aplicacion.data.usuarioPackage
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

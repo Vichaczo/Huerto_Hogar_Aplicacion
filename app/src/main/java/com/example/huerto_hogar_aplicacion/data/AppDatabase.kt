@@ -4,6 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioDao
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
+
+
 
 @Database(
     entities = [Usuario::class],
@@ -24,8 +28,12 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "huerto_hogar.db" // Cambié el nombre para que sea más descriptivo
                 )
-                    .fallbackToDestructiveMigration()// Puede ser esta linea el error?
-                    .allowMainThreadQueries() // <-- AÑADE ESTA LÍNEA
+
+                    .fallbackToDestructiveMigration()
+                    /*
+                    .allowMainThreadQueries()
+                    */
+
                     .build()
                     .also { INSTANCE = it }
             }

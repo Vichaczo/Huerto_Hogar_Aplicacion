@@ -1,13 +1,11 @@
-package com.example.huerto_hogar_aplicacion.ui
+package com.example.huerto_hogar_aplicacion.ui.viewModelPackage
 
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.huerto_hogar_aplicacion.data.Usuario
-import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
-import kotlinx.coroutines.launch
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 
 class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
     private val _nombre = MutableLiveData<String>()

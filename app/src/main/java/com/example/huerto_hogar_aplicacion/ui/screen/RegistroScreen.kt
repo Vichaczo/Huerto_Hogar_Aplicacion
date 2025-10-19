@@ -15,20 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
-import com.example.huerto_hogar_aplicacion.ui.RegistroViewModel
-import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
-import java.util.regex.Pattern // Importa Patterns para la validación de email
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import androidx.compose.runtime.rememberCoroutineScope //
 import kotlinx.coroutines.launch //
 

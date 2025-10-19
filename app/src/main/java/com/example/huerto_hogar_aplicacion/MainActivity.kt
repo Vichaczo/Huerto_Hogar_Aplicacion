@@ -12,11 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
-import com.example.huerto_hogar_aplicacion.ui.LoginViewModel
-import com.example.huerto_hogar_aplicacion.ui.RegistroViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.ViewModelFactory
-import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
+import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
