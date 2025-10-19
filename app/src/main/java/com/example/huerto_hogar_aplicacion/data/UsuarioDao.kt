@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDao {
+    // --- CORRECCIÓN: Se añade 'suspend' a las operaciones de escritura ---
     @Insert
-    fun insert(usuario: Usuario): Long
+    suspend fun insert(usuario: Usuario): Long
 
     @Query("SELECT * FROM Usuario WHERE email = :email")
     fun getByEmail(email: String): Flow<Usuario?>
@@ -19,12 +20,12 @@ interface UsuarioDao {
     fun getById(id: Long): Flow<Usuario?>
 
     @Update
-    fun update(usuario: Usuario)
+    suspend fun update(usuario: Usuario)
 
     @Delete
-    fun delete(usuario: Usuario)
+    suspend fun delete(usuario: Usuario)
 
     @Query("SELECT * FROM Usuario ORDER BY id ASC")
     fun getAll(): Flow<List<Usuario>>
-
 }
+
