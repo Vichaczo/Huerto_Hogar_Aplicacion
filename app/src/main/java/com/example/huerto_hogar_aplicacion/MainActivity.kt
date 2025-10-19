@@ -82,7 +82,7 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
         }
 
         composable("registro") {
-            RegistroScreen(navController = navController,  registroViewModel = registroViewModel)
+            RegistroScreen(navController = navController,  registroViewModel = registroViewModel,homeViewModel = homeViewModel)
         }
 
         composable("product_list") {
@@ -91,7 +91,7 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
             // ProductListScreen(navController = navController)
         }
 
-        composable("crud_management") {
+        composable("crud") {
             // Esto es para el CrudManagementScreen Composable
             // Desde ese CRUD el admin podra editar productos
             // CrudManagementScreen(navController = navController)

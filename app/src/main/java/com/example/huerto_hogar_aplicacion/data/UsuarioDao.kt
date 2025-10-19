@@ -27,5 +27,8 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM Usuario ORDER BY id ASC")
     fun getAll(): Flow<List<Usuario>>
+
+    @Query("SELECT * FROM Usuario WHERE email = :email LIMIT 1")
+    suspend fun findByEmail(email: String): Usuario?
 }
 

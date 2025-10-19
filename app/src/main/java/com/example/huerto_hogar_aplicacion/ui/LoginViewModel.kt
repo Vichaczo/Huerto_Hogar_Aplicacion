@@ -4,6 +4,7 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.huerto_hogar_aplicacion.data.Usuario
 import com.example.huerto_hogar_aplicacion.data.UsuarioRepository
 import kotlinx.coroutines.delay
 
@@ -26,13 +27,17 @@ class LoginViewModel(private val repo: UsuarioRepository) : ViewModel() {
         _loginEnable.value = isValidEmail(email) && isValidPassword(password)
     }
 
+    suspend fun buscarUsuarioEmail(email: String): Usuario? {
+        return repo.findUserByEmail(email)
+    }
+
     private fun isValidPassword(password: String): Boolean = password.length > 6
 
     private fun isValidEmail(email: String): Boolean  = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
     suspend fun onLoginSelected() {
         _isLoading.value = true
-        delay(4000)
+        delay(2000)
         _isLoading.value = false
     }
 

@@ -39,24 +39,13 @@ fun LoginScreen(navController: NavController, homeViewModel: HomeViewModel, logi
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        /*
-        val loginSuccess by loginViewModel.loginSuccess.observeAsState(false)
 
-        if (loginSuccess) {
-            LaunchedEffect(Unit) {
-                homeViewModel.onAdminLoginSuccess()
-                navController.navigate("home") {
-                    popUpTo("home") { inclusive = true }
-                }
-            }
-        }*/
-
-        Login(Modifier.align(Alignment.Center), loginViewModel, navController)
+        Login(Modifier.align(Alignment.Center), loginViewModel, navController,homeViewModel)
     }
 }
 
 @Composable
-fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: NavController) {
+fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: NavController,homeViewModel : HomeViewModel) {
     val email: String by loginViewModel.email.observeAsState(initial = "")
     val password: String by loginViewModel.password.observeAsState(initial = "")
     val loginEnable: Boolean by loginViewModel.loginEnable.observeAsState(initial = false)
@@ -85,8 +74,34 @@ fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: Nav
             LoginButton(loginEnable) {
                 coroutineScope.launch {
                     loginViewModel.onLoginSelected()
+
+                    val usuario = loginViewModel.buscarUsuarioEmail(email)
+                    if(usuario?.email == email && usuario.password == password)
+                    {
+                        if(usuario?.nombre == "administrador") {
+                            homeViewModel.onLoginSuccess(
+                                userId = usuario.id,
+                                userName = usuario.nombre,
+                                isAdmin = true
+                            )
+                            navController.navigate("home")
+
+                        }
+                        else{
+                            homeViewModel.onLoginSuccess(
+                                userId = usuario.id,
+                                userName = usuario.nombre,
+                                isAdmin = false)
+                            navController.navigate("home")
+                        }
+                    }
+                    else{
+                        navController.navigate("registro") /*Esto significa que paso algo mal, cambiar luego*/
+                    }
                 }
+
             }
+            //Aqui iria el pop up de usuario no registrado/valido o si es valido te lleva a home, puede ser una funcion?
             Spacer(modifier = Modifier.padding(8.dp))
             RegisterButton(navController)
         }

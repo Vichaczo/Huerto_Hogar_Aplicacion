@@ -5,22 +5,47 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+sealed class SessionState {
+
+    // 1. Estado "Logueado": Contiene TODOS los datos del usuario
+    data class LoggedIn(
+        val userId: Long,
+        val userName: String,
+        val isAdmin: Boolean
+    ) : SessionState()
+
+    // 2. Estado "No Logueado": No contiene nada
+    object LoggedOut : SessionState()
+}
+
 class HomeViewModel : ViewModel() {
 
-    // Estado privado y mutable que solo el ViewModel puede modificar.
-    // Inicia como 'false' (el usuario no es admin por defecto).
-    private val _isAdmin = MutableStateFlow(false)
+    // 1. Un solo StateFlow que empieza como 'LoggedOut'
+    private val _sessionState = MutableStateFlow<SessionState>(SessionState.LoggedOut)
+    val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
-    // Estado público e inmutable que la UI puede leer de forma segura.
-    val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
 
-    // Función que se llamaría desde la pantalla de Login cuando el inicio de sesión es exitoso.
-    fun onAdminLoginSuccess() {
-        _isAdmin.value = true
+    /**
+     * Esta es la ÚNICA función que necesitas para iniciar sesión.
+     * La llamas desde tu LoginScreen O tu RegistroScreen
+     * cuando el usuario entra con éxito.
+     *
+     * (Probablemente le pases un objeto 'Usuario' real de tu base de datos)
+     */
+    fun onLoginSuccess(userId: Long, userName: String, isAdmin: Boolean) {
+        // Al cambiar el valor, todas las pantallas que observen 'sessionState' se actualizarán
+        _sessionState.value = SessionState.LoggedIn(
+            userId = userId,
+            userName = userName,
+            isAdmin = isAdmin
+        )
     }
 
-    // Función para simular el cierre de sesión.
+    /**
+     * Función para cerrar la sesión.
+     * Simplemente vuelve al estado 'LoggedOut'.
+     */
     fun onLogout() {
-        _isAdmin.value = false
+        _sessionState.value = SessionState.LoggedOut
     }
 }

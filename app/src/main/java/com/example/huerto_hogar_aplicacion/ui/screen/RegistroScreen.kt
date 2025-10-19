@@ -25,23 +25,29 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import java.util.regex.Pattern // Importa Patterns para la validación de email
+import androidx.compose.runtime.rememberCoroutineScope //
+import kotlinx.coroutines.launch //
 
 @Composable
-fun RegistroScreen(navController: NavController, registroViewModel: RegistroViewModel) {
+fun RegistroScreen(navController: NavController, registroViewModel: RegistroViewModel,homeViewModel: HomeViewModel) {
     Box(
         Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Registro(Modifier.align(Alignment.Center), registroViewModel, navController)
+        Registro(Modifier.align(Alignment.Center), registroViewModel, navController,homeViewModel)
     }
 }
 
 @Composable
-fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navController: NavController) {
+fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navController: NavController,homeViewModel: HomeViewModel) {
+
+    val scope = rememberCoroutineScope()
+
     val nombre: String by registroViewModel.nombre.observeAsState(initial = "")
     val apellido: String by registroViewModel.apellido.observeAsState(initial = "")
     val email: String by registroViewModel.email.observeAsState(initial = "")
@@ -87,9 +93,21 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
         // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = {
-                // La UI solo notifica al ViewModel. ¡Y listo!
-                registroViewModel.onRegisterButtonClicked()
-                navController.navigate("login")
+
+                scope.launch {
+
+
+                    val usuarioRegistrado = registroViewModel.onRegisterButtonClicked()
+
+
+                    homeViewModel.onLoginSuccess(
+                        userId = usuarioRegistrado.id,
+                        userName = usuarioRegistrado.nombre,
+                        isAdmin = false // Un usuario nuevo nunca es admin
+                    )
+
+                    navController.navigate("home")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

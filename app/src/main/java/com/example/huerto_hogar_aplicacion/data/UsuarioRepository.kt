@@ -12,7 +12,7 @@ class UsuarioRepository(private val dao: UsuarioDao) {
     // ------------------------------------------------------------
     // FUNCIÓN PARA AGREGAR UN NUEVO PRODUCTO
     // ------------------------------------------------------------
-     suspend fun agregar(usuario : Usuario) {
+     suspend fun agregar(usuario : Usuario) : Long {
         // Se marca como 'suspend' porque ejecuta operaciones de base de datos (debe ir en coroutine).
         // Valida que el ID sea válido (mayor que 0).
         require(usuario.nombre.isNotBlank()) { "El nombre no puede estar vacío" }
@@ -26,11 +26,9 @@ class UsuarioRepository(private val dao: UsuarioDao) {
         require(usuario.telefono.isNotBlank()) { "El telefono no puede estar vacío" }
         // Valida que el telefono no esté vacío.
 
-        dao.insert(
-            usuario
-        )
+        return dao.insert(usuario)
         // Inserta el nuevo producto en la base de datos con los valores limpios (sin espacios extras).
-    }
+        }
 
     // ------------------------------------------------------------
     // FUNCIÓN PARA ACTUALIZAR UN PRODUCTO EXISTENTE
@@ -64,9 +62,10 @@ class UsuarioRepository(private val dao: UsuarioDao) {
     suspend fun eliminar(usuario: Usuario) = dao.delete(usuario)
     // Llama directamente al método delete() del DAO para eliminar un registro.
 
-    // ------------------------------------------------------------
-    // FUNCIÓN PARA OBTENER UN PRODUCTO POR ID
-    // ------------------------------------------------------------
+
     suspend fun obtener(id: Long) = dao.getById(id)
-    // Devuelve un producto específico (o null si no existe).
+
+    suspend fun findUserByEmail(email: String): Usuario? {
+        return dao.findByEmail(email)
+    }
 }

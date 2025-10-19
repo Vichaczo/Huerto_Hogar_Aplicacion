@@ -24,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "huerto_hogar.db" // Cambié el nombre para que sea más descriptivo
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration()// Puede ser esta linea el error?
                     .allowMainThreadQueries() // <-- AÑADE ESTA LÍNEA
                     .build()
                     .also { INSTANCE = it }

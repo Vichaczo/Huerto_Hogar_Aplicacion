@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.ui.HomeViewModel
+import com.example.huerto_hogar_aplicacion.ui.SessionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,15 +21,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
 
     // El estado 'isAdmin' del ViewModel.
     // Cada vez que 'isAdmin' cambia, esta variable se actualiza y la UI se recompone.
-    val isAdmin by homeViewModel.isAdmin.collectAsState()
+    val sessionState by homeViewModel.sessionState.collectAsState()
+
+    val currentState = sessionState
+    var isAdmin = false
+    var welcomeText = "Bienvenido a Huerto Hogar" // Valor por defecto
+
+    if (currentState is SessionState.LoggedIn) { // Chequea si es LoggedIn
+        // DENTRO de este bloque, Kotlin sabe que currentState es LoggedIn
+        isAdmin = currentState.isAdmin // <--- Acceso seguro a isAdmin
+        welcomeText = if (currentState.isAdmin) "Bienvenido, Administrador" else "Bienvenido, ${currentState.userName}"
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Huerto Hogar") },
+                title = { Text("") },
                 actions = {
                     // Muestra un botón u otro dependiendo del estado de login.
-                    if (isAdmin) {
+                    if (sessionState is SessionState.LoggedIn) {
                         TextButton(onClick = { homeViewModel.onLogout() }) {
                             Text("Cerrar Sesión")
                         }
@@ -50,7 +61,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = if (isAdmin) "Bienvenido, Administrador" else "Bienvenido a Huerto Hogar",
+                text = welcomeText,
                 fontSize = 24.sp,
                 textAlign = TextAlign.Center
             )
@@ -75,7 +86,17 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             // El botón de CRUD solo se añade a la UI si 'isAdmin' es true.
             if (isAdmin) {
                 Button(
-                    onClick = { navController.navigate("crud_management") },
+                    onClick = { navController.navigate("crud") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Text("Gestionar Usuarios (CRUD)")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = { navController.navigate("crud") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                 ) {

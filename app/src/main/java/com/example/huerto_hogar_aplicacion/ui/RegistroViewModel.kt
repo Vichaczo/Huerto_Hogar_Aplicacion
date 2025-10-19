@@ -36,24 +36,24 @@ class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
         _registroEnable.value = isValidNombre(nombre) && isValidApellido(apellido) && isValidEmail(email) && isValidPassword(password) && isValidTelefono(telefono)
     }
 
-    // --- FUNCIÓN CORREGIDA Y NUEVA ---
-    fun onRegisterButtonClicked() {
-        // Usamos viewModelScope para lanzar una coroutina segura
-        viewModelScope.launch {
-            // Creamos el objeto Usuario usando los valores de los LiveData.
-            // No pasamos el 'id', por lo que usará el valor por defecto (0).
-            val nuevoUsuario = Usuario(
-                nombre = nombre.value ?: "",
-                apellido = apellido.value ?: "",
-                email = email.value ?: "",
-                password = password.value ?: "",
-                telefono = telefono.value ?: ""
-            )
+    suspend fun onRegisterButtonClicked(): Usuario {
+        // Creamos el objeto Usuario usando los valores actuales de los LiveData.
+        val nuevoUsuario = Usuario(
+            nombre = nombre.value ?: "",
+            apellido = apellido.value ?: "",
+            email = email.value ?: "",
+            password = password.value ?: "",
+            telefono = telefono.value ?: ""
+            // id se deja por defecto (usualmente 0)
+        )
 
-            // Llamamos a la función 'suspend' del repositorio.
-            repo.agregar(nuevoUsuario)
-        }
+        // Llamamos a la función suspend del repositorio, que devuelve el nuevo ID.
+        val newId = repo.agregar(nuevoUsuario) // repo.agregar() ahora devuelve Long
+
+        // Devolvemos una copia del usuario, pero ahora con el ID correcto.
+        return nuevoUsuario.copy(id = newId)
     }
+
 
     // Las funciones de validación están bien
     private fun isValidNombre(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
