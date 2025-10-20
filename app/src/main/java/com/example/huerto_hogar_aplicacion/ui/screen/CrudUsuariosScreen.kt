@@ -38,12 +38,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewModel
-// Importa tus funciones SearchBarAndActions y UserCard del ejemplo anterior
 
 @Composable
-fun CrudUsuariosScreen(crudUsuarioViewModel: CrudUsuarioViewModel) {
+fun CrudUsuariosScreen(navController : NavController,crudUsuarioViewModel: CrudUsuarioViewModel) {
 
     // Observar el estado de la UI
     val state by crudUsuarioViewModel.state.collectAsState()
@@ -85,7 +85,8 @@ fun CrudUsuariosScreen(crudUsuarioViewModel: CrudUsuarioViewModel) {
                     UserCard(
                         user = user,
                         onEditClicked = {
-                            // Abrir diálogo de editar (debo implementar el diálogo)
+                            crudUsuarioViewModel.loadUserById(user.id)
+                            navController.navigate("CrudUsuariosEditarScreen/${user.id}")//Aqui iria a screen de actualizar
                         },
                         onDeleteClicked = {
                             crudUsuarioViewModel.delete(user)
@@ -133,8 +134,6 @@ fun SearchBarAndActions(query: String, onQueryChanged: (String) -> Unit, onAddCl
         }
     }
 }
-
-// ---  TARJETA DE USUARIO (UserCard - Cubo Verde) ---
 
 @Composable
 fun UserCard(

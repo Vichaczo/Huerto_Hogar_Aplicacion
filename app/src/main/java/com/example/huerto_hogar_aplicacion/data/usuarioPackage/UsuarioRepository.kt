@@ -24,7 +24,6 @@ class UsuarioRepository(private val dao: UsuarioDao) {
         // Recibe todos los datos actualizados y el ID del producto.
         //Validaciones de datos
 
-        require(id > 0) { "Id inválido" }
         require(nombre.isNotBlank()) { "El nombre no puede estar vacío" }
         require(apellido.isNotBlank()) { "El apellido no puede estar vacío" }
         require(email.isNotBlank()) { "El email no puede estar vacío" }

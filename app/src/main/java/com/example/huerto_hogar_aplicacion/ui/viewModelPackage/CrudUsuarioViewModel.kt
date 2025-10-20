@@ -1,5 +1,6 @@
 package com.example.huerto_hogar_aplicacion.ui.viewModelPackage
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
@@ -18,7 +19,24 @@ data class CrudState(
     val isLoading: Boolean = false
 )
 
+data class EditUserState(
+    val id: Long = 0L,
+    val nombre: String = "",
+    val apellido: String = "",
+    val email: String = "",
+    val password: String = "",
+    val telefono: String = "",
+    val isUpdateEnabled: Boolean = false,
+    val isLoadingUser: Boolean = false,
+    val error: String? = null
+)
+
 class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
+
+    private val idUsuarioPorActualizar = MutableStateFlow(null)
+
+    private val _editUserState = MutableStateFlow(EditUserState())
+    val editUserState: StateFlow<EditUserState> = _editUserState.asStateFlow()
 
     private val _state = MutableStateFlow(CrudState())
     val state: StateFlow<CrudState> = _state.asStateFlow()
@@ -72,20 +90,62 @@ class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewMode
     }
 
     //
-    fun update(id: Long, newName: String, newEmail: String) = viewModelScope.launch {
-        // 1. OBTENER el usuario actual desde el Repository
-        val user: Usuario? = repository.obtener(id).first()
+    fun loadUserById(id: Long) {
+        viewModelScope.launch {
+            _editUserState.value = _editUserState.value.copy(isLoadingUser = true, error = null)
+            try {
 
-        // 2. Si el usuario existe, llama a la función de actualización completa
-        user?.let { currentUser ->
-            repository.actualizar(
-                id = currentUser.id,
-                nombre = newName, // Valor actualizado
-                apellido = currentUser.apellido, // Mantener
-                email = newEmail, // Valor actualizado
-                password = currentUser.password, // Mantener
-                telefono = currentUser.telefono // Mantener
-            )
+                val user = repository.obtener(id).first()
+                if (user != null) {
+                    val isValidInitial = isValidNombre(user.nombre) && isValidApellido(user.apellido) && isValidEmail(user.email) && isValidPassword(user.password) && isValidTelefono(user.telefono)
+
+                    _editUserState.value = EditUserState(
+                        id = user.id,
+                        nombre = user.nombre,
+                        apellido = user.apellido,
+                        email = user.email,
+                        password = user.password,
+                        telefono = user.telefono,
+                        isUpdateEnabled = isValidInitial,
+                        isLoadingUser = false
+                    )
+                } else {
+                    _editUserState.value = _editUserState.value.copy(isLoadingUser = false, error = "Usuario no encontrado")
+                }
+            } catch (e: Exception) {
+                _editUserState.value = _editUserState.value.copy(isLoadingUser = false, error = e.localizedMessage ?: "Error al cargar usuario")
+            }
         }
     }
+    fun onEditFieldChanged(
+        nombre: String = _editUserState.value.nombre,
+        apellido: String = _editUserState.value.apellido,
+        email: String = _editUserState.value.email,
+        password: String = _editUserState.value.password,
+        telefono: String = _editUserState.value.telefono
+    ) {
+        val isValid = isValidNombre(nombre) && isValidApellido(apellido) && isValidEmail(email) && isValidPassword(password) && isValidTelefono(telefono)
+
+        _editUserState.value = _editUserState.value.copy(
+            nombre = nombre,
+            apellido = apellido,
+            email = email,
+            password = password,
+            telefono = telefono,
+            isUpdateEnabled = isValid
+        )
+    }
+    fun onUpdateUserClicked() = viewModelScope.launch {
+        val state = _editUserState.value
+        update(state.id, state.nombre, state.apellido, state.email, state.password, state.telefono)
+    }
+    fun update(id: Long, nombre: String, apellido: String, email: String, password: String, telefono: String) = viewModelScope.launch {
+        repository.actualizar(id, nombre, apellido, email, password, telefono)
+    }
+
+    private fun isValidNombre(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
+    private fun isValidApellido(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
+    private fun isValidPassword(password: String): Boolean = (password.length > 6 && password.length < 20) && password.any { it.isDigit() }
+    private fun isValidEmail(email: String): Boolean  = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    private fun isValidTelefono(telefono: String): Boolean = telefono.length == 10
 }

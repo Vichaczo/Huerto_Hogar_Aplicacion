@@ -77,7 +77,7 @@ fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: Nav
                     val usuario = loginViewModel.buscarUsuarioEmail(email)
                     if(usuario?.email == email && usuario.password == password)
                     {
-                        if(usuario?.nombre == "administrador") {
+                        if(usuario?.email == "HuertoHogar@gmail.com") {
                             homeViewModel.onLoginSuccess(
                                 userId = usuario.id,
                                 userName = usuario.nombre,

@@ -9,9 +9,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
@@ -25,6 +27,7 @@ import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.example.huerto_hogar_aplicacion.data.AppDatabase
+import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosEditarScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -82,7 +85,18 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
         }
 
         composable("CrudUsuariosScreen") {
-             CrudUsuariosScreen(crudUsuarioViewModel = crudUsuarioViewModel)
+             CrudUsuariosScreen(navController = navController,crudUsuarioViewModel = crudUsuarioViewModel)
+        }
+        composable(
+            route = "CrudUsuariosEditarScreen/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getLong("userId") ?: 0L
+            CrudUsuariosEditarScreen(
+                navController = navController,
+                crudUsuarioViewModel = crudUsuarioViewModel,
+                userId = userId
+            )
         }
     }
 }

@@ -23,6 +23,12 @@ import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import androidx.compose.runtime.rememberCoroutineScope //
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import kotlinx.coroutines.launch //
 
 @Composable
@@ -53,6 +59,9 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
             .verticalScroll(rememberScrollState()), // Hacemos la columna "scrolleable"
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        TituloRegistro()
+        Spacer(modifier = Modifier.padding(16.dp))
+
         NombreField(nombre) { newNombre ->
             registroViewModel.onRegisterChanged(newNombre, apellido, email, password, telefono)
         }
@@ -87,12 +96,21 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
 
                     val usuarioRegistrado = registroViewModel.onRegisterButtonClicked()
 
-
-                    homeViewModel.onLoginSuccess(
-                        userId = usuarioRegistrado.id,
-                        userName = usuarioRegistrado.nombre,
-                        isAdmin = false // Un usuario nuevo nunca es admin
-                    )
+                    if(usuarioRegistrado.email == "HuertoHogar@gmail.com") {
+                        homeViewModel.onLoginSuccess(
+                            userId = usuarioRegistrado.id,
+                            userName = usuarioRegistrado.nombre,
+                            isAdmin = true // Admin, porque tiene HuertoHogar@gmail.com dominio
+                        )
+                    }
+                    else
+                    {
+                        homeViewModel.onLoginSuccess(
+                            userId = usuarioRegistrado.id,
+                            userName = usuarioRegistrado.nombre,
+                            isAdmin = false // Usuario nuevo que no es admin
+                        )
+                    }
 
                     navController.navigate("home")
                 }
@@ -298,7 +316,7 @@ fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
 @Composable
 fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length == 10 // Asumiendo '10' por tu VM
+    val isValid = value.length == 10
     val helperText = "Debe tener 10 dígitos (ej: 912345678)."
 
     val containerColor = when {
@@ -337,6 +355,22 @@ fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
             )
         }
     }
+}
+@Composable
+fun TituloRegistro() {
+    Text(
+        text = "¡Unetenos!",
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        style = TextStyle(
+            color = MaterialTheme.colorScheme.onBackground,
+            shadow = Shadow(
+                color = CafeSombraTexto,
+                offset = Offset(x = 2f, y = 2f),
+                blurRadius = 4f
+            )
+        )
+    )
 }
 
 
