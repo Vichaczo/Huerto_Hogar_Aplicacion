@@ -26,7 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "huerto_hogar.db" // Cambié el nombre para que sea más descriptivo
+                    "huerto_hogar.db"
                 )
 
                     .fallbackToDestructiveMigration()

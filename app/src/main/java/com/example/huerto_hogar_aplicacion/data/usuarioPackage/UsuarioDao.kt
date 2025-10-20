@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDao {
-    // --- CORRECCIÓN: Se añade 'suspend' a las operaciones de escritura ---
+
     @Insert
     suspend fun insert(usuario: Usuario): Long
 

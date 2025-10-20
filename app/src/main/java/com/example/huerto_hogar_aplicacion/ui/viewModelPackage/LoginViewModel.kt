@@ -21,6 +21,7 @@ class LoginViewModel(private val repo: UsuarioRepository) : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
+    //Login, se cambie valor de loginEnable a true cuando funcionan las validaciones.
     fun onLoginChanged(email: String, password: String) {
         _email.value = email
         _password.value = password
@@ -31,10 +32,12 @@ class LoginViewModel(private val repo: UsuarioRepository) : ViewModel() {
         return repo.findUserByEmail(email)
     }
 
+    //Validaciones
     private fun isValidPassword(password: String): Boolean = password.length > 6
 
     private fun isValidEmail(email: String): Boolean  = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
+    //Login carga
     suspend fun onLoginSelected() {
         _isLoading.value = true
         delay(2000)

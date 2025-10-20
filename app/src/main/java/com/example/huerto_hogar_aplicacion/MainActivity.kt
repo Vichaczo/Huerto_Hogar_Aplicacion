@@ -28,18 +28,10 @@ import com.example.huerto_hogar_aplicacion.data.AppDatabase
 
 class MainActivity : ComponentActivity() {
 
-
-    // 1. Crea la instancia de la base de datos de forma 'lazy' (solo cuando se necesita por primera vez)
     private val database by lazy { AppDatabase.get(this) }
-
-    // 2. Crea el repositorio, pasándole el DAO de la base de datos
     private val repository by lazy { UsuarioRepository(database.usuarioDao()) }
-
-    // 3. Crea la factory, pasándole el repositorio
     private val viewModelFactory by lazy { ViewModelFactory(repository) }
-
-    // 4. Ahora, inicializa cada ViewModel correctamente
-    private val homeViewModel: HomeViewModel by viewModels() // Este no necesita factory
+    private val homeViewModel: HomeViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels { viewModelFactory }
     private val registroViewModel: RegistroViewModel by viewModels { viewModelFactory }
 
@@ -63,19 +55,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel, crudUsuarioViewModel: CrudUsuarioViewModel) {
     // Se crea el controlador de navegación que gestiona el historial de pantallas.
+    //El traspaso de HomeViewModel constante es para poder acceder al estado de login desde cualquier lugar.
     val navController = rememberNavController()
 
     // NavHost es el contenedor que intercambia las pantallas.
     // 'startDestination = "splash"' define cuál es la primera pantalla en mostrarse.
     NavHost(navController = navController, startDestination = "splash") {
 
-        // Define la ruta "splash" y le asigna el Composable SplashScreen.
         composable("splash") {
             SplashScreen(navController = navController)
         }
-
-        // Define la ruta "home" y le asigna el Composable HomeScreen.
-        // Le pasamos el viewModel para que pueda acceder al estado de login.
         composable("home") {
             HomeScreen(navController = navController, homeViewModel = homeViewModel)
         }
@@ -89,15 +78,10 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
             RegistroScreen(navController = navController,  registroViewModel = registroViewModel,homeViewModel = homeViewModel)
         }
 
-        composable("product_list") {
-            // Este screen "product_list" sera para poder ver los productos
-            // al hacer click en ver productos.
-            // ProductListScreen(navController = navController)
+        composable("lista_productos") {
         }
 
         composable("CrudUsuariosScreen") {
-            // Esto es para el CrudManagementScreen Composable
-            // Desde ese CRUD el admin podra editar productos
              CrudUsuariosScreen(crudUsuarioViewModel = crudUsuarioViewModel)
         }
     }

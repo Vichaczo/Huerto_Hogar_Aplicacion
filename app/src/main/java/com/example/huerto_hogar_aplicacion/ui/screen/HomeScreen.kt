@@ -73,9 +73,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón que siempre es visible
+            // Botón para poder ver los productos disponibles
             Button(
-                onClick = { navController.navigate("product_list") },
+                onClick = { navController.navigate("lista_productos") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Ver Productos")

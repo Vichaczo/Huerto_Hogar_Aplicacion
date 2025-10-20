@@ -53,31 +53,26 @@ fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navContro
             .verticalScroll(rememberScrollState()), // Hacemos la columna "scrolleable"
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- CAMPO NOMBRE ---
         NombreField(nombre) { newNombre ->
             registroViewModel.onRegisterChanged(newNombre, apellido, email, password, telefono)
         }
         Spacer(modifier = Modifier.padding(4.dp))
 
-        // --- CAMPO APELLIDO ---
         ApellidoField(apellido) { newApellido ->
             registroViewModel.onRegisterChanged(nombre, newApellido, email, password, telefono)
         }
         Spacer(modifier = Modifier.padding(4.dp))
 
-        // --- CAMPO EMAIL ---
         EmailFieldRegister(email) { newEmail ->
             registroViewModel.onRegisterChanged(nombre, apellido, newEmail, password, telefono)
         }
         Spacer(modifier = Modifier.padding(4.dp))
 
-        // --- CAMPO CONTRASEÑA ---
         PasswordFieldRegister(password) { newPassword ->
             registroViewModel.onRegisterChanged(nombre, apellido, email, newPassword, telefono)
         }
         Spacer(modifier = Modifier.padding(4.dp))
 
-        // --- CAMPO TELÉFONO ---
         TelefonoField(telefono) { newTelefono ->
             registroViewModel.onRegisterChanged(nombre, apellido, email, password, newTelefono)
         }

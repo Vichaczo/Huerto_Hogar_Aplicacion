@@ -7,31 +7,24 @@ import kotlinx.coroutines.flow.asStateFlow
 
 sealed class SessionState {
 
-    // 1. Estado "Logueado": Contiene TODOS los datos del usuario
+    //  Estado "Logueado": Contiene los datos del usuario como id y nombre, tambien si es admin o no
     data class LoggedIn(
         val userId: Long,
         val userName: String,
         val isAdmin: Boolean
     ) : SessionState()
 
-    // 2. Estado "No Logueado": No contiene nada
+    // Estado "No Logueado": Vacio
     object LoggedOut : SessionState()
 }
 
 class HomeViewModel : ViewModel() {
 
-    // 1. Un solo StateFlow que empieza como 'LoggedOut'
+    // Un solo StateFlow que empieza como 'LoggedOut'
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.LoggedOut)
     val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
-
-    /**
-     * Esta es la ÚNICA función que necesitas para iniciar sesión.
-     * La llamas desde tu LoginScreen O tu RegistroScreen
-     * cuando el usuario entra con éxito.
-     *
-     * (Probablemente le pases un objeto 'Usuario' real de tu base de datos)
-     */
+    // Cuando se validan los datos y hay exito al inicar sesion se llama a esta funcion
     fun onLoginSuccess(userId: Long, userName: String, isAdmin: Boolean) {
         // Al cambiar el valor, todas las pantallas que observen 'sessionState' se actualizarán
         _sessionState.value = SessionState.LoggedIn(
@@ -41,10 +34,7 @@ class HomeViewModel : ViewModel() {
         )
     }
 
-    /**
-     * Función para cerrar la sesión.
-     * Simplemente vuelve al estado 'LoggedOut'.
-     */
+    //Funcion para cerrar sesion, simplemente lo vuelve a LoggedOut
     fun onLogout() {
         _sessionState.value = SessionState.LoggedOut
     }

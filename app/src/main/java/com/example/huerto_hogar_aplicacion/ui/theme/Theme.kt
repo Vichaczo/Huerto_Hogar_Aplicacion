@@ -19,14 +19,14 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = MarronBorde, // Por ejemplo, el marrón puede ser tu color primario
+    primary = MarronBorde,
     secondary = CafeTexto,
-    background = VerdeFondo, // Asignamos nuestro verde al fondo de la app
-    surface = VerdeFondo, // Y también a las superficies como las tarjetas
+    background = VerdeFondo,
+    surface = VerdeFondo,
 
     onPrimary = Color.White,
     onSecondary = Color.White,
-    onBackground = CafeTexto, // El texto sobre el fondo será café
+    onBackground = CafeTexto,
     onSurface = CafeTexto,
 
     /* Other default colors to override

@@ -10,8 +10,6 @@ import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
     private val _nombre = MutableLiveData<String>()
     val nombre: LiveData<String> = _nombre
-
-    // ... (el resto de tus LiveData para apellido, email, etc. están bien)
     private val _apellido = MutableLiveData<String>()
     val apellido: LiveData<String> = _apellido
     private val _email = MutableLiveData<String>()
@@ -24,7 +22,7 @@ class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
     private val _registroEnable = MutableLiveData<Boolean>()
     val registroEnable: LiveData<Boolean> = _registroEnable
 
-
+    //Lo mismo que pasa en el login, se habilita el boton de registro solo si todos los campos son validos
     fun onRegisterChanged(nombre: String, apellido: String, email: String, password: String, telefono: String) {
         _nombre.value = nombre
         _apellido.value = apellido
@@ -42,18 +40,17 @@ class RegistroViewModel(private val repo: UsuarioRepository) : ViewModel() {
             email = email.value ?: "",
             password = password.value ?: "",
             telefono = telefono.value ?: ""
-            // id se deja por defecto (usualmente 0)
         )
 
         // Llamamos a la función suspend del repositorio, que devuelve el nuevo ID.
-        val newId = repo.agregar(nuevoUsuario) // repo.agregar() ahora devuelve Long
+        val newId = repo.agregar(nuevoUsuario) // repo.agregar() devuelve Long
 
-        // Devolvemos una copia del usuario, pero ahora con el ID correcto.
+        // Devolvemos una copia del usuario, pero ahora con el ID.
         return nuevoUsuario.copy(id = newId)
     }
 
 
-    // Las funciones de validación están bien
+    // Funciones de validacion
     private fun isValidNombre(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
     private fun isValidApellido(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
     private fun isValidPassword(password: String): Boolean = (password.length > 6 && password.length < 20) && password.any { it.isDigit() }

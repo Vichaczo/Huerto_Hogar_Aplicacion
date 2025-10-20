@@ -8,9 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// Estado para manejar la UI de CRUD (simplificado para Carga Simple)
+// Estado para manejar la UI de CRUD
 data class CrudState(
     val users: List<Usuario> = emptyList(),      // Lista filtrada que se muestra
     val currentQuery: String = "",
@@ -24,7 +25,7 @@ class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewMode
 
     private val _searchQuery = MutableStateFlow("") // El estado de la barra de búsqueda
 
-    //  COMBINA: Une el Flow de todos los usuarios de la DB y la consulta de búsqueda
+    // Une el Flow de todos los usuarios de la DB y la consulta de búsqueda
     init {
         _state.value = _state.value.copy(isLoading = true)
 
@@ -72,6 +73,19 @@ class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewMode
 
     //
     fun update(id: Long, newName: String, newEmail: String) = viewModelScope.launch {
-        // ... (lógica de update)
+        // 1. OBTENER el usuario actual desde el Repository
+        val user: Usuario? = repository.obtener(id).first()
+
+        // 2. Si el usuario existe, llama a la función de actualización completa
+        user?.let { currentUser ->
+            repository.actualizar(
+                id = currentUser.id,
+                nombre = newName, // Valor actualizado
+                apellido = currentUser.apellido, // Mantener
+                email = newEmail, // Valor actualizado
+                password = currentUser.password, // Mantener
+                telefono = currentUser.telefono // Mantener
+            )
+        }
     }
 }
