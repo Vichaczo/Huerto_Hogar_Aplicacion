@@ -15,12 +15,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewModel
 import com.example.huerto_hogar_aplicacion.ui.ViewModelFactory
 import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.example.huerto_hogar_aplicacion.data.AppDatabase
 
@@ -41,6 +43,8 @@ class MainActivity : ComponentActivity() {
     private val loginViewModel: LoginViewModel by viewModels { viewModelFactory }
     private val registroViewModel: RegistroViewModel by viewModels { viewModelFactory }
 
+    private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels { viewModelFactory }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -49,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(homeViewModel,loginViewModel,registroViewModel)
+                    AppNavigation(homeViewModel,loginViewModel,registroViewModel, crudUsuarioViewModel)
                 }
             }
         }
@@ -57,7 +61,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel) {
+fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel, crudUsuarioViewModel: CrudUsuarioViewModel) {
     // Se crea el controlador de navegación que gestiona el historial de pantallas.
     val navController = rememberNavController()
 
@@ -91,10 +95,10 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
             // ProductListScreen(navController = navController)
         }
 
-        composable("crud") {
+        composable("CrudUsuariosScreen") {
             // Esto es para el CrudManagementScreen Composable
             // Desde ese CRUD el admin podra editar productos
-            // CrudManagementScreen(navController = navController)
+             CrudUsuariosScreen(crudUsuarioViewModel = crudUsuarioViewModel)
         }
     }
 }

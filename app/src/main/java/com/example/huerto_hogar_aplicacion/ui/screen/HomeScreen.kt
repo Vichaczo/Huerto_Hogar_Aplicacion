@@ -86,7 +86,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             // El botón de CRUD solo se añade a la UI si 'isAdmin' es true.
             if (isAdmin) {
                 Button(
-                    onClick = { navController.navigate("crud") },
+                    onClick = { navController.navigate("CrudUsuariosScreen") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                 ) {
