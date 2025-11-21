@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.googleServices)
+    alias(libs.plugins.crashlytics)
     id("com.google.devtools.ksp")
 }
 
@@ -67,6 +69,13 @@ dependencies {
     // optional - Test helpers
     testImplementation("androidx.room:room-testing:${room_version}")
     // optional - Paging 3 Integration
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-analytics")
+
+
 
     implementation("androidx.room:room-paging:${room_version}")
     implementation(libs.androidx.core.ktx)
