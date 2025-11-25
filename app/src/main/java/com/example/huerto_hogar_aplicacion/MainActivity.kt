@@ -14,18 +14,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// --- VIEWMODELS ---
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewModel
-import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ProductoViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CarritoViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudProductoViewModel
+// --- PANTALLAS ---
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosScreen
-import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosEditarScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.CatalogoScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.DetalleProductoScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.CarritoScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.HistorialScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosEditarScreen
+// --- TEMA Y FIREBASE ---
+import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -33,23 +44,42 @@ import com.google.firebase.auth.auth
 class MainActivity : ComponentActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private val homeViewModel: HomeViewModel by viewModels()
-    private val loginViewModel: LoginViewModel by viewModels ()
-    private val registroViewModel: RegistroViewModel by viewModels ()
 
-    private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels ()
+    // Declaración de ViewModels
+    // Usamos "by viewModels()" simple porque modificamos los ViewModels para instanciar
+    // sus repositorios internamente (Opción A), evitando errores de Factory.
+    private val homeViewModel: HomeViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
+    private val registroViewModel: RegistroViewModel by viewModels()
+    private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels()
+
+    // Nuevos ViewModels para el E-commerce y Admin
+    private val productoViewModel: ProductoViewModel by viewModels()
+    private val carritoViewModel: CarritoViewModel by viewModels()
+    private val crudProductoViewModel: CrudProductoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar Firebase
         auth = Firebase.auth
+
         setContent {
             Huerto_Hogar_AplicacionTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    
-                    AppNavigation(homeViewModel,loginViewModel,registroViewModel, crudUsuarioViewModel,auth)
+                    AppNavigation(
+                        homeViewModel = homeViewModel,
+                        loginViewModel = loginViewModel,
+                        registroViewModel = registroViewModel,
+                        crudUsuarioViewModel = crudUsuarioViewModel,
+                        productoViewModel = productoViewModel,
+                        carritoViewModel = carritoViewModel,
+                        crudProductoViewModel = crudProductoViewModel,
+                        auth = auth
+                    )
                 }
             }
         }
@@ -57,43 +87,112 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel, crudUsuarioViewModel: CrudUsuarioViewModel,auth: FirebaseAuth) {
-    // Se crea el controlador de navegación que gestiona el historial de pantallas.
-    //El traspaso de HomeViewModel constante es para poder acceder al estado de login desde cualquier lugar.
+fun AppNavigation(
+    homeViewModel: HomeViewModel,
+    loginViewModel: LoginViewModel,
+    registroViewModel: RegistroViewModel,
+    crudUsuarioViewModel: CrudUsuarioViewModel,
+    productoViewModel: ProductoViewModel,
+    carritoViewModel: CarritoViewModel,
+    crudProductoViewModel: CrudProductoViewModel,
+    auth: FirebaseAuth
+) {
     val navController = rememberNavController()
 
-    // NavHost es el contenedor que intercambia las pantallas.
-    // 'startDestination = "splash"' define cuál es la primera pantalla en mostrarse.
+    // Definimos el grafo de navegación. "splash" es la primera pantalla.
     NavHost(navController = navController, startDestination = "splash") {
+
+        // --- PANTALLAS DE INICIO Y AUTENTICACIÓN ---
 
         composable("splash") {
             SplashScreen(navController = navController)
         }
+
         composable("home") {
             HomeScreen(navController = navController, homeViewModel = homeViewModel)
         }
 
-
         composable("login") {
-            LoginScreen(navController = navController, homeViewModel = homeViewModel, loginViewModel = loginViewModel,auth = auth)
+            LoginScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                loginViewModel = loginViewModel,
+                auth = auth
+            )
         }
 
         composable("registro") {
-            RegistroScreen(navController = navController,  registroViewModel = registroViewModel,homeViewModel = homeViewModel,auth = auth)
+            RegistroScreen(
+                navController = navController,
+                registroViewModel = registroViewModel,
+                homeViewModel = homeViewModel,
+                auth = auth
+            )
         }
 
-        composable("lista_productos") {
+        // --- ZONA DE COMPRAS (CLIENTE) ---
+
+        composable("catalogo") {
+            CatalogoScreen(navController = navController, viewModel = productoViewModel)
         }
 
-        composable("CrudUsuariosScreen") {
-             CrudUsuariosScreen(navController = navController,crudUsuarioViewModel = crudUsuarioViewModel)
-        }
         composable(
-            route = "CrudUsuariosEditarScreen/{userUid}", // Parametro String
+            route = "detalle_producto/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            // Recuperamos el ID pasado en la URL
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            DetalleProductoScreen(
+                navController = navController,
+                productoId = id,
+                homeViewModel = homeViewModel,
+                productoViewModel = productoViewModel,
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        composable("carrito") {
+            CarritoScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        composable("historial") {
+            HistorialScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        // --- ZONA ADMINISTRATIVA (ADMIN) ---
+
+        // 1. Gestión de Usuarios
+        composable("CrudUsuariosScreen") {
+            CrudUsuariosScreen(navController = navController, crudUsuarioViewModel = crudUsuarioViewModel)
+        }
+
+        composable(
+            route = "CrudUsuariosEditarScreen/{userUid}",
             arguments = listOf(navArgument("userUid") { type = NavType.StringType })
         ) { backStackEntry ->
             val userUid = backStackEntry.arguments?.getString("userUid") ?: ""
             CrudUsuariosEditarScreen(navController, crudUsuarioViewModel, userUid)
+        }
+
+        // 2. Gestión de Productos (Inventario)
+        composable("crud_productos") {
+            CrudProductosScreen(navController = navController, viewModel = crudProductoViewModel)
+        }
+
+        composable(
+            route = "CrudProductosEditarScreen/{productoId}",
+            arguments = listOf(navArgument("productoId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("productoId") ?: 0L
+            CrudProductosEditarScreen(navController, crudProductoViewModel, id)
         }
     }
 }
