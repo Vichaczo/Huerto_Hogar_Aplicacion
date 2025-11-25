@@ -1,15 +1,12 @@
 package com.example.huerto_hogar_aplicacion.data.usuarioPackage
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity
 data class Usuario(
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0,
-    var nombre: String = "",
-    var apellido: String = "",
-    var email: String = "",
-    var password: String = "",
-    var telefono: String = ""
+
+    val uid: String,
+    val nombre: String?,
+    val apellido: String?,
+    val email: String,
+    val telefono: String?,
+    val direccion: String?,
+    val rol: String? = "usuario"
 )

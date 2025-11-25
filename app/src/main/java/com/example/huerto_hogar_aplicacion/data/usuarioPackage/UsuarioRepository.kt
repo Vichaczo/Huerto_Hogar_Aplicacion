@@ -1,48 +1,42 @@
 package com.example.huerto_hogar_aplicacion.data.usuarioPackage
 
-import kotlinx.coroutines.flow.Flow
+import com.example.huerto_hogar_aplicacion.data.network.RetrofitClient
 
-class UsuarioRepository(private val dao: UsuarioDao) {
-    // Recibe una instancia del DAO para acceder a la base de datos.
-    val usuarios: Flow<List<Usuario>> = dao.getAll()
+class UsuarioRepository {
 
-    // FUNCIÓN PARA AGREGAR UN USUARIO
-     suspend fun agregar(usuario : Usuario) : Long {
-        // Se marca como 'suspend' porque ejecuta operaciones de base de datos (debe ir en coroutine).
-        require(usuario.nombre.isNotBlank()) { "El nombre no puede estar vacío" }
-        require(usuario.apellido.isNotBlank()) { "El apellido no puede estar vacío" }
-        require(usuario.email.isNotBlank()) { "El email no puede estar vacío" }
-        require(usuario.password.isNotBlank()) { "El password no puede estar vacío" }
-        require(usuario.telefono.isNotBlank()) { "El telefono no puede estar vacío" }
+    private val api = RetrofitClient.api
 
-        return dao.insert(usuario)
-        // Inserta el nuevo usuario en la base de datos con los valores limpios (sin espacios extras).
-        }
-
-    // FUNCIÓN PARA ACTUALIZAR UN USUARIO EXISTENTE
-    suspend fun actualizar(id: Long,nombre: String, apellido: String, email: String, password: String, telefono: String) {
-        // Recibe todos los datos actualizados y el ID del producto.
-        //Validaciones de datos
-
-        require(nombre.isNotBlank()) { "El nombre no puede estar vacío" }
-        require(apellido.isNotBlank()) { "El apellido no puede estar vacío" }
-        require(email.isNotBlank()) { "El email no puede estar vacío" }
-        require(password.isNotBlank()) { "El password no puede estar vacío" }
-        require(telefono.isNotBlank()) { "El telefono no puede estar vacío" }
-
-        dao.update(
-            Usuario(id = id, nombre = nombre.trim(),apellido = apellido.trim(), email = email.trim(), password = password.trim(), telefono = telefono.trim())
-        )
+    // --- CREAR ---
+    suspend fun crearUsuario(usuario: Usuario): Usuario {
+        return api.crearUsuario(usuario)
     }
 
-    // FUNCIÓN PARA ELIMINAR UN PRODUCTO
-    suspend fun eliminar(usuario: Usuario) = dao.delete(usuario)
+    // --- LEER (Individual) ---
+    suspend fun obtenerUsuario(uid: String): Usuario? {
+        return try {
+            api.obtenerUsuario(uid)
+        } catch (e: Exception) {
+            null
+        }
+    }
 
-    // FUNCIÓN PARA OBTENER UN Usuario por su ID
-    suspend fun obtener(id: Long) = dao.getById(id)
+    // --- LEER (Todos - Para el CRUD) ---
+    suspend fun listarUsuarios(): List<Usuario> {
+        return try {
+            api.listarUsuarios()
+        } catch (e: Exception) {
+            emptyList() // Si falla, devuelve lista vacía para no romper la UI
+        }
+    }
 
-    // FUNCION PARA OBTENER USUARIO POR SU EMAIL
-    suspend fun findUserByEmail(email: String): Usuario? {
-        return dao.findByEmail(email)
+    // --- ACTUALIZAR ---
+    suspend fun actualizarUsuario(uid: String, usuario: Usuario): Usuario {
+        // Asumiendo que tu backend devuelve el usuario actualizado
+        return api.actualizarUsuario(uid, usuario)
+    }
+
+    // --- ELIMINAR ---
+    suspend fun eliminarUsuario(uid: String) {
+        api.eliminarUsuario(uid)
     }
 }

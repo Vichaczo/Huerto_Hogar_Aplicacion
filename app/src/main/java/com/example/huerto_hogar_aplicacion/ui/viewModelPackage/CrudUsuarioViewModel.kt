@@ -9,122 +9,126 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// Estado para manejar la UI de CRUD
+// Estado de la Lista
 data class CrudState(
-    val users: List<Usuario> = emptyList(),      // Lista filtrada que se muestra
+    val users: List<Usuario> = emptyList(),
     val currentQuery: String = "",
     val isLoading: Boolean = false
 )
 
+// Estado de Edición ACTUALIZADO
 data class EditUserState(
-    val id: Long = 0L,
+    val uid: String = "",
     val nombre: String = "",
     val apellido: String = "",
     val email: String = "",
     val password: String = "",
     val telefono: String = "",
+    val direccion: String = "", // NUEVO
+    val rol: String = "usuario", // NUEVO (editable)
     val isUpdateEnabled: Boolean = false,
     val isLoadingUser: Boolean = false,
     val error: String? = null
 )
 
-class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
+class CrudUsuarioViewModel : ViewModel() {
 
-    private val idUsuarioPorActualizar = MutableStateFlow(null)
+    private val repository = UsuarioRepository()
+
+    private val _allUsers = MutableStateFlow<List<Usuario>>(emptyList())
+    private val _searchQuery = MutableStateFlow("")
+    private val _state = MutableStateFlow(CrudState())
+    val state: StateFlow<CrudState> = _state.asStateFlow()
 
     private val _editUserState = MutableStateFlow(EditUserState())
     val editUserState: StateFlow<EditUserState> = _editUserState.asStateFlow()
 
-    private val _state = MutableStateFlow(CrudState())
-    val state: StateFlow<CrudState> = _state.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("") // El estado de la barra de búsqueda
-
-    // Une el Flow de todos los usuarios de la DB y la consulta de búsqueda
     init {
-        _state.value = _state.value.copy(isLoading = true)
+        fetchUsuarios()
+        setupSearchFilter()
+    }
 
+    fun fetchUsuarios() {
+        _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
-            // El Flow 'usuarios' proviene de UsuarioRepository, que observa la DB.
-            repository.usuarios
-                .combine(_searchQuery) { allUsers, query ->
-                    //  APLICA FILTRO EN MEMORIA:
-                    if (query.isBlank()) {
-                        allUsers // Si no hay búsqueda, devuelve todos.
-                    } else {
-                        val lowerCaseQuery = query.lowercase()
-                        allUsers.filter { user ->
-                            user.nombre.lowercase().contains(lowerCaseQuery) ||
-                                    user.email.lowercase().contains(lowerCaseQuery) ||
-                                    user.telefono.lowercase().contains(lowerCaseQuery)
-                        }
-                    }
+            try {
+                val usuariosApi = repository.listarUsuarios()
+                _allUsers.value = usuariosApi
+            } catch (e: Exception) {
+                _allUsers.value = emptyList()
+            } finally {
+                if (_allUsers.value.isEmpty()) {
+                    _state.value = _state.value.copy(isLoading = false)
                 }
-                .collect { filteredList ->
-                    // ACTUALIZA el estado de la UI con la lista filtrada
-                    _state.value = _state.value.copy(
-                        users = filteredList,
-                        isLoading = false,
-                        currentQuery = _searchQuery.value // Refleja la consulta actual
-                    )
-                }
+            }
         }
     }
 
-    // --- LÓGICA DE BÚSQUEDA ---
-    fun onQueryChanged(newQuery: String) {
-        _searchQuery.value = newQuery // Al cambiar el query, se dispara el combine/collect de arriba.
+    private fun setupSearchFilter() {
+        viewModelScope.launch {
+            combine(_allUsers, _searchQuery) { users, query ->
+                if (query.isBlank()) {
+                    users
+                } else {
+                    val lower = query.lowercase()
+                    users.filter {
+                        (it.nombre ?: "").lowercase().contains(lower) ||
+                                it.email.lowercase().contains(lower)
+                    }
+                }
+            }.collect { filteredList ->
+                _state.value = _state.value.copy(users = filteredList, isLoading = false, currentQuery = _searchQuery.value)
+            }
+        }
     }
 
-    // --- LÓGICA CRUD  ---
-
-    fun insert(usuario: Usuario) = viewModelScope.launch {
-        repository.agregar(usuario)
+    fun onQueryChanged(newQuery: String) {
+        _searchQuery.value = newQuery
     }
 
     fun delete(usuario: Usuario) = viewModelScope.launch {
-        repository.eliminar(usuario)
+        _state.value = _state.value.copy(isLoading = true)
+        try {
+            repository.eliminarUsuario(usuario.uid)
+            fetchUsuarios()
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(isLoading = false)
+        }
     }
 
-    //
-    fun loadUserById(id: Long) {
+    // --- CARGA DE DATOS PARA EDICIÓN ---
+    fun loadUserByUid(uid: String) {
         viewModelScope.launch {
             _editUserState.value = _editUserState.value.copy(isLoadingUser = true, error = null)
             try {
-
-                val user = repository.obtener(id).first()
+                val user = repository.obtenerUsuario(uid)
                 if (user != null) {
-                    val isValidInitial = isValidNombre(user.nombre) && isValidApellido(user.apellido) && isValidEmail(user.email) && isValidPassword(user.password) && isValidTelefono(user.telefono)
-
                     _editUserState.value = EditUserState(
-                        id = user.id,
-                        nombre = user.nombre,
-                        apellido = user.apellido,
+                        uid = user.uid,
+                        nombre = user.nombre ?: "",
+                        apellido = user.apellido ?: "",
                         email = user.email,
-                        password = user.password,
-                        telefono = user.telefono,
-                        isUpdateEnabled = isValidInitial,
+                        password = "",
+                        telefono = user.telefono ?: "",
+                        direccion = user.direccion ?: "", // Cargamos dirección
+                        rol = user.rol ?: "usuario",      // Cargamos rol
+                        isUpdateEnabled = true,
                         isLoadingUser = false
                     )
                 } else {
                     _editUserState.value = _editUserState.value.copy(isLoadingUser = false, error = "Usuario no encontrado")
                 }
             } catch (e: Exception) {
-                _editUserState.value = _editUserState.value.copy(isLoadingUser = false, error = e.localizedMessage ?: "Error al cargar usuario")
+                _editUserState.value = _editUserState.value.copy(isLoadingUser = false, error = e.message)
             }
         }
     }
-    fun onEditFieldChanged(
-        nombre: String = _editUserState.value.nombre,
-        apellido: String = _editUserState.value.apellido,
-        email: String = _editUserState.value.email,
-        password: String = _editUserState.value.password,
-        telefono: String = _editUserState.value.telefono
-    ) {
-        val isValid = isValidNombre(nombre) && isValidApellido(apellido) && isValidEmail(email) && isValidPassword(password) && isValidTelefono(telefono)
+
+    // --- MANEJO DE CAMBIOS EN EL FORMULARIO DE EDICIÓN ---
+    fun onEditFieldChanged(nombre: String, apellido: String, email: String, password: String, telefono: String, direccion: String, rol: String) {
+        val isValid = isValidNombre(nombre) && isValidApellido(apellido) && isValidEmail(email) && isValidTelefono(telefono) && isValidDireccion(direccion)
 
         _editUserState.value = _editUserState.value.copy(
             nombre = nombre,
@@ -132,20 +136,41 @@ class CrudUsuarioViewModel(private val repository: UsuarioRepository) : ViewMode
             email = email,
             password = password,
             telefono = telefono,
+            direccion = direccion, // Actualizamos dirección
+            rol = rol,             // Actualizamos rol
             isUpdateEnabled = isValid
         )
     }
+
+    // --- GUARDAR CAMBIOS ---
     fun onUpdateUserClicked() = viewModelScope.launch {
-        val state = _editUserState.value
-        update(state.id, state.nombre, state.apellido, state.email, state.password, state.telefono)
-    }
-    fun update(id: Long, nombre: String, apellido: String, email: String, password: String, telefono: String) = viewModelScope.launch {
-        repository.actualizar(id, nombre, apellido, email, password, telefono)
+        val current = _editUserState.value
+        _editUserState.value = current.copy(isLoadingUser = true)
+
+        try {
+            val userToUpdate = Usuario(
+                uid = current.uid,
+                nombre = current.nombre,
+                apellido = current.apellido,
+                email = current.email,
+                telefono = current.telefono,
+                direccion = current.direccion, // Enviamos nueva dirección
+                rol = current.rol              // Enviamos nuevo rol (admin/usuario)
+            )
+
+            repository.actualizarUsuario(current.uid, userToUpdate)
+            fetchUsuarios()
+
+        } catch (e: Exception) {
+            _editUserState.value = current.copy(error = "Error al actualizar: ${e.message}")
+        } finally {
+            _editUserState.value = _editUserState.value.copy(isLoadingUser = false)
+        }
     }
 
-    private fun isValidNombre(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
-    private fun isValidApellido(nombre: String): Boolean = nombre.length > 3 && nombre.any { it.isLetter() }
-    private fun isValidPassword(password: String): Boolean = (password.length > 6 && password.length < 20) && password.any { it.isDigit() }
-    private fun isValidEmail(email: String): Boolean  = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    private fun isValidTelefono(telefono: String): Boolean = telefono.length == 10
+    private fun isValidNombre(valStr: String) = valStr.length > 2
+    private fun isValidApellido(valStr: String) = valStr.length > 2
+    private fun isValidEmail(email: String) = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    private fun isValidTelefono(tel: String) = tel.length >= 9
+    private fun isValidDireccion(dir: String) = dir.length > 3
 }

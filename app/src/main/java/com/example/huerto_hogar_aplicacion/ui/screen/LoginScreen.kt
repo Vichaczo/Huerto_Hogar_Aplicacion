@@ -1,17 +1,11 @@
 package com.example.huerto_hogar_aplicacion.ui.screen
 
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -19,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,28 +24,47 @@ import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(navController: NavController, homeViewModel: HomeViewModel, loginViewModel: LoginViewModel) {
+fun LoginScreen(
+    navController: NavController,
+    homeViewModel: HomeViewModel,
+    loginViewModel: LoginViewModel,
+    auth: FirebaseAuth
+) {
     Box(
         Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-
-        Login(Modifier.align(Alignment.Center), loginViewModel, navController,homeViewModel)
+        Login(Modifier.align(Alignment.Center), loginViewModel, navController, homeViewModel, auth)
     }
 }
 
 @Composable
-fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: NavController,homeViewModel : HomeViewModel) {
+fun Login(
+    modifier: Modifier,
+    loginViewModel: LoginViewModel,
+    navController: NavController,
+    homeViewModel: HomeViewModel,
+    auth: FirebaseAuth
+) {
+    // Observamos los estados del ViewModel
     val email: String by loginViewModel.email.observeAsState(initial = "")
     val password: String by loginViewModel.password.observeAsState(initial = "")
     val loginEnable: Boolean by loginViewModel.loginEnable.observeAsState(initial = false)
     val isLoading: Boolean by loginViewModel.isLoading.observeAsState(initial = false)
+    val loginError: String? by loginViewModel.loginError.observeAsState(initial = null)
 
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Efecto para mostrar errores (Toast) si ocurren
+    LaunchedEffect(loginError) {
+        loginError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        }
+    }
 
     if (isLoading) {
         Box(Modifier.fillMaxSize()) {
@@ -64,49 +78,35 @@ fun Login(modifier: Modifier, loginViewModel: LoginViewModel, navController: Nav
             Spacer(modifier = Modifier.height(32.dp))
             Logo()
             Spacer(modifier = Modifier.padding(16.dp))
+
             EmailField(email) { loginViewModel.onLoginChanged(it, password) }
             Spacer(modifier = Modifier.padding(4.dp))
+
             PasswordField(password) { loginViewModel.onLoginChanged(email, it) }
             Spacer(modifier = Modifier.padding(8.dp))
+
             ForgotPassword(Modifier.align(Alignment.End))
             Spacer(modifier = Modifier.padding(16.dp))
+
+            // BOTÓN LOGIN CON LA NUEVA LÓGICA
             LoginButton(loginEnable) {
-                coroutineScope.launch {
-                    loginViewModel.onLoginSelected()
-
-                    val usuario = loginViewModel.buscarUsuarioEmail(email)
-                    if(usuario?.email == email && usuario.password == password)
-                    {
-                        if(usuario?.email == "HuertoHogar@gmail.com") {
-                            homeViewModel.onLoginSuccess(
-                                userId = usuario.id,
-                                userName = usuario.nombre,
-                                isAdmin = true
-                            )
-                            navController.navigate("home")
-
-                        }
-                        else{
-                            homeViewModel.onLoginSuccess(
-                                userId = usuario.id,
-                                userName = usuario.nombre,
-                                isAdmin = false)
-                            navController.navigate("home")
-                        }
-                    }
-                    else{
-                        navController.navigate("registro") /*Esto significa que paso algo mal, cambiar luego*/
+                // Delegamos toda la lógica al ViewModel (Firebase + Backend)
+                loginViewModel.realizarLogin(auth, homeViewModel) {
+                    // Este bloque se ejecuta solo si todo sale bien (onSuccess)
+                    navController.navigate("home") {
+                        // Limpia el stack para que no pueda volver al login con "atrás"
+                        popUpTo("login") { inclusive = true }
                     }
                 }
-
             }
-            //Aqui iria el pop up de usuario no registrado/valido o si es valido te lleva a home, puede ser una funcion?
+
             Spacer(modifier = Modifier.padding(8.dp))
             RegisterButton(navController)
         }
     }
 }
 
+// --- COMPONENTES UI AUXILIARES ---
 
 @Composable
 fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
@@ -138,14 +138,14 @@ fun RegisterButton(navController: NavController) {
 fun ForgotPassword(modifier: Modifier) {
     Text(
         text = "¿Olvidaste la contraseña?",
-        modifier = modifier.clickable { },
+        modifier = modifier.clickable {
+            // Opcional: Implementar recuperación de contraseña de Firebase aquí si sobra tiempo
+        },
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
         color = Color(0xFF795548)
     )
 }
-
-// CAMPOS DE TEXTO VALIDADOS
 
 @Composable
 fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
@@ -195,7 +195,6 @@ fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
 @Composable
 fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    // Usamos la misma validación de email que en el registro
     val isValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val helperText = "Correo no válido"
 
@@ -237,8 +236,6 @@ fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     }
 }
 
-// LOGO
-
 @Composable
 fun Logo() {
     Text(
@@ -255,4 +252,3 @@ fun Logo() {
         )
     )
 }
-

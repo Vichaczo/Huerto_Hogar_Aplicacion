@@ -1,17 +1,6 @@
 package com.example.huerto_hogar_aplicacion.ui.screen
 
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,19 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,50 +21,67 @@ import com.example.huerto_hogar_aplicacion.data.usuarioPackage.Usuario
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewModel
 
 @Composable
-fun CrudUsuariosScreen(navController : NavController,crudUsuarioViewModel: CrudUsuarioViewModel) {
+fun CrudUsuariosScreen(
+    navController: NavController,
+    crudUsuarioViewModel: CrudUsuarioViewModel
+) {
+    // 1. RECARGA AUTOMÁTICA:
+    // Cada vez que se abre esta pantalla, llamamos a la API para traer datos frescos.
+    LaunchedEffect(Unit) {
+        crudUsuarioViewModel.fetchUsuarios()
+    }
 
-    // Observar el estado de la UI
+    // Observamos el estado del ViewModel (Lista, Loading, Filtro)
     val state by crudUsuarioViewModel.state.collectAsState()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        // --- BARRA SUPERIOR (BUSQUEDA Y BOTÓN AGREGAR) ---
+        // --- BARRA SUPERIOR (BÚSQUEDA Y AGREGAR) ---
         SearchBarAndActions(
             query = state.currentQuery,
             onQueryChanged = crudUsuarioViewModel::onQueryChanged,
             onAddClicked = {
-                // Lógica para abrir el diálogo/navegación de añadir
+                // Para agregar un usuario nuevo, lo mejor es enviarlo al Registro
+                // ya que necesitamos crear primero la cuenta en Firebase.
+                navController.navigate("registro")
             }
         )
 
         Spacer(Modifier.height(16.dp))
 
-        // --- INDICADOR DE CARGA INICIAL ---
+        // --- CONTENIDO VARIABLE ---
         if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            // Caso A: Cargando
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF6D4C41))
+            }
         }
-
-        // --- LISTA DE USUARIOS (CUBOS VERDES) ---
-        else if (state.users.isEmpty() && state.currentQuery.isBlank()) {
-            Text("No hay usuarios registrados.", modifier = Modifier.align(Alignment.CenterHorizontally))
-        }
-        else if (state.users.isEmpty() && state.currentQuery.isNotBlank()) {
-            Text("No se encontraron resultados para '${state.currentQuery}'.", modifier = Modifier.align(Alignment.CenterHorizontally))
+        else if (state.users.isEmpty()) {
+            // Caso B: Lista Vacía (o filtro sin resultados)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = if (state.currentQuery.isBlank()) "No hay usuarios registrados."
+                    else "No se encontraron resultados.",
+                    color = Color.Gray
+                )
+            }
         }
         else {
+            // Caso C: Mostrar Lista
             LazyColumn(
-                modifier = Modifier.fillMaxSize(), // Ocupa todo el espacio restante
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Iterar sobre la lista filtrada
-                items(state.users, key = { it.id }) { user ->
+                // Importante: Usamos 'uid' como llave única
+                items(state.users, key = { it.uid }) { user ->
                     UserCard(
                         user = user,
                         onEditClicked = {
-                            crudUsuarioViewModel.loadUserById(user.id)
-                            navController.navigate("CrudUsuariosEditarScreen/${user.id}")//Aqui iria a screen de actualizar
+                            // Navegamos pasando el UID (String)
+                            navController.navigate("CrudUsuariosEditarScreen/${user.uid}")
                         },
                         onDeleteClicked = {
                             crudUsuarioViewModel.delete(user)
@@ -95,10 +90,10 @@ fun CrudUsuariosScreen(navController : NavController,crudUsuarioViewModel: CrudU
                 }
             }
         }
-
-
     }
 }
+
+// --- COMPONENTES AUXILIARES ---
 
 @Composable
 fun SearchBarAndActions(query: String, onQueryChanged: (String) -> Unit, onAddClicked: () -> Unit) {
@@ -110,25 +105,26 @@ fun SearchBarAndActions(query: String, onQueryChanged: (String) -> Unit, onAddCl
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChanged,
-            placeholder = { Text("Buscar usuario...") },
+            placeholder = { Text("Buscar por nombre o email...") },
             modifier = Modifier.weight(1f),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFDEDDDD), //
-                unfocusedContainerColor = Color(0xFFDEDDDD),
-                focusedBorderColor = Color(0xFF6D4C41), //
+                focusedContainerColor = Color(0xFFF5F5F5),
+                unfocusedContainerColor = Color(0xFFF5F5F5),
+                focusedBorderColor = Color(0xFF6D4C41),
                 unfocusedBorderColor = Color(0xFF6D4C41)
             )
         )
 
         Spacer(Modifier.width(8.dp))
 
-        // Botón Agregar Usuario (Azul)
+        // Botón Agregar (Azul)
         Button(
             onClick = onAddClicked,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)), // Azul
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
             modifier = Modifier.size(56.dp),
-            contentPadding = PaddingValues(0.dp)
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Icon(Icons.Filled.Add, contentDescription = "Agregar", tint = Color.White)
         }
@@ -143,9 +139,9 @@ fun UserCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF81C784) // Verde principal para la tarjeta
+            containerColor = Color(0xFF81C784) // Verde Huerto
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -156,18 +152,42 @@ fun UserCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Datos del Usuario
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = user.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
-                Text(text = user.email, fontSize = 14.sp, color = Color(0xFFE8F5E9)) // Verde muy claro
-                Text(text = "Password: ${user.password}", fontSize = 14.sp, color = Color(0xFFE8F5E9))
+                Text(
+                    text = user.nombre ?: "Sin Nombre", // Manejo de nulos
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = user.email,
+                    fontSize = 14.sp,
+                    color = Color(0xFFE8F5E9)
+                )
+                Text(
+                    text = "Tel: ${user.telefono ?: "N/A"}",
+                    fontSize = 14.sp,
+                    color = Color(0xFFE8F5E9)
+                )
+                // Mostrar Rol solo si es admin para diferenciar
+                if (user.rol == "admin") {
+                    Text(
+                        text = "★ ADMIN",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFEB3B) // Amarillo
+                    )
+                }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            // Botones de Acción
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Botón Editar (Amarillo)
                 Button(
                     onClick = onEditClicked,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)), // Amarillo
-                    modifier = Modifier.size(36.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+                    modifier = Modifier.size(40.dp),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Icon(Icons.Filled.Edit, contentDescription = "Editar", tint = Color.Black)
@@ -176,8 +196,8 @@ fun UserCard(
                 // Botón Eliminar (Rojo)
                 Button(
                     onClick = onDeleteClicked,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)), // Rojo
-                    modifier = Modifier.size(36.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                    modifier = Modifier.size(40.dp),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color.White)

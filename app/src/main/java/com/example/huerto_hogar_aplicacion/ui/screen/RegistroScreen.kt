@@ -1,157 +1,175 @@
 package com.example.huerto_hogar_aplicacion.ui.screen
 
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
-import androidx.compose.runtime.rememberCoroutineScope //
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
-import kotlinx.coroutines.launch //
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun RegistroScreen(navController: NavController, registroViewModel: RegistroViewModel,homeViewModel: HomeViewModel) {
+fun RegistroScreen(
+    navController: NavController,
+    registroViewModel: RegistroViewModel,
+    homeViewModel: HomeViewModel,
+    auth: FirebaseAuth
+) {
     Box(
         Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Registro(Modifier.align(Alignment.Center), registroViewModel, navController,homeViewModel)
+        Registro(Modifier.align(Alignment.Center), registroViewModel, navController, homeViewModel, auth)
     }
 }
 
 @Composable
-fun Registro(modifier: Modifier, registroViewModel: RegistroViewModel, navController: NavController,homeViewModel: HomeViewModel) {
-
-    val scope = rememberCoroutineScope()
-
+fun Registro(
+    modifier: Modifier,
+    registroViewModel: RegistroViewModel,
+    navController: NavController,
+    homeViewModel: HomeViewModel,
+    auth: FirebaseAuth
+) {
+    // Observamos los estados del ViewModel
     val nombre: String by registroViewModel.nombre.observeAsState(initial = "")
     val apellido: String by registroViewModel.apellido.observeAsState(initial = "")
     val email: String by registroViewModel.email.observeAsState(initial = "")
     val password: String by registroViewModel.password.observeAsState(initial = "")
     val telefono: String by registroViewModel.telefono.observeAsState(initial = "")
+
+    // NUEVO: Estado para la Dirección
+    val direccion: String by registroViewModel.direccion.observeAsState(initial = "")
+
     val registroEnable: Boolean by registroViewModel.registroEnable.observeAsState(initial = false)
 
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState()), // Hacemos la columna "scrolleable"
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        TituloRegistro()
-        Spacer(modifier = Modifier.padding(16.dp))
+    // Estados para feedback visual (Carga y Errores)
+    val isLoading: Boolean by registroViewModel.isLoading.observeAsState(initial = false)
+    val errorMensaje: String? by registroViewModel.errorMensaje.observeAsState(initial = null)
 
-        NombreField(nombre) { newNombre ->
-            registroViewModel.onRegisterChanged(newNombre, apellido, email, password, telefono)
+    val context = LocalContext.current
+
+    // Efecto para mostrar Toast si ocurre un error
+    LaunchedEffect(errorMensaje) {
+        errorMensaje?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
-        Spacer(modifier = Modifier.padding(4.dp))
+    }
 
-        ApellidoField(apellido) { newApellido ->
-            registroViewModel.onRegisterChanged(nombre, newApellido, email, password, telefono)
+    if (isLoading) {
+        // Spinner de carga
+        Box(Modifier.fillMaxSize()) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
-        Spacer(modifier = Modifier.padding(4.dp))
-
-        EmailFieldRegister(email) { newEmail ->
-            registroViewModel.onRegisterChanged(nombre, apellido, newEmail, password, telefono)
-        }
-        Spacer(modifier = Modifier.padding(4.dp))
-
-        PasswordFieldRegister(password) { newPassword ->
-            registroViewModel.onRegisterChanged(nombre, apellido, email, newPassword, telefono)
-        }
-        Spacer(modifier = Modifier.padding(4.dp))
-
-        TelefonoField(telefono) { newTelefono ->
-            registroViewModel.onRegisterChanged(nombre, apellido, email, password, newTelefono)
-        }
-        Spacer(modifier = Modifier.padding(16.dp))
-
-        // --- BOTÓN DE REGISTRO ---
-        Button(
-            onClick = {
-
-                scope.launch {
-
-
-                    val usuarioRegistrado = registroViewModel.onRegisterButtonClicked()
-
-                    if(usuarioRegistrado.email == "HuertoHogar@gmail.com") {
-                        homeViewModel.onLoginSuccess(
-                            userId = usuarioRegistrado.id,
-                            userName = usuarioRegistrado.nombre,
-                            isAdmin = true // Admin, porque tiene HuertoHogar@gmail.com dominio
-                        )
-                    }
-                    else
-                    {
-                        homeViewModel.onLoginSuccess(
-                            userId = usuarioRegistrado.id,
-                            userName = usuarioRegistrado.nombre,
-                            isAdmin = false // Usuario nuevo que no es admin
-                        )
-                    }
-
-                    navController.navigate("home")
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF6D4C41),
-                disabledContainerColor = Color(0xFFA1887F),
-                contentColor = Color.White,
-                disabledContentColor = Color.White
-            ),
-            enabled = registroEnable
+    } else {
+        Column(
+            modifier = modifier.verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Registrarse")
+            TituloRegistro()
+            Spacer(modifier = Modifier.padding(16.dp))
+
+            // --- CAMPOS DE TEXTO ---
+            // Nota: Al cambiar un campo, debemos pasar TODOS los valores actuales al ViewModel
+            // para que no se borren los otros datos.
+
+            NombreField(nombre) {
+                registroViewModel.onRegisterChanged(it, apellido, email, password, telefono, direccion)
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            ApellidoField(apellido) {
+                registroViewModel.onRegisterChanged(nombre, it, email, password, telefono, direccion)
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            EmailFieldRegister(email) {
+                registroViewModel.onRegisterChanged(nombre, apellido, it, password, telefono, direccion)
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            PasswordFieldRegister(password) {
+                registroViewModel.onRegisterChanged(nombre, apellido, email, it, telefono, direccion)
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            TelefonoField(telefono) {
+                registroViewModel.onRegisterChanged(nombre, apellido, email, password, it, direccion)
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            // NUEVO: Campo de Dirección
+            DireccionField(direccion) {
+                registroViewModel.onRegisterChanged(nombre, apellido, email, password, telefono, it)
+            }
+            Spacer(modifier = Modifier.padding(16.dp))
+
+            // --- BOTÓN DE REGISTRO ---
+            Button(
+                onClick = {
+                    registroViewModel.performRegistro(auth, homeViewModel) {
+                        // Éxito: Navegar al Home y limpiar stack
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6D4C41),
+                    disabledContainerColor = Color(0xFFA1887F),
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White
+                ),
+                enabled = registroEnable
+            ) {
+                Text(text = "Registrarse")
+            }
         }
     }
 }
 
-// CAMPOS DE TEXTO VALIDADOS
+// --- COMPONENTES UI AUXILIARES ---
 
 @Composable
 fun NombreField(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    // Replicamos la lógica de validación del VM
-    val isValid = value.length > 3 && value.any { it.isLetter() }
-    val helperText = "Debe tener más de 3 letras."
+    val isValid = value.length > 2 && value.any { it.isLetter() }
+    val helperText = "Debe tener más de 2 letras."
 
-    // Lógica de colores
     val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD) // Color inicial
-        isValid -> Color(0xFFC8E6C9) // Verde si es válido
-        else -> Color(0xFFFFCDD2) // Rojo si es inválido
+        !isDirty -> Color(0xFFDEDDDD)
+        isValid -> Color(0xFFC8E6C9)
+        else -> Color(0xFFFFCDD2)
     }
 
     Column {
         TextField(
             value = value,
             onValueChange = {
-                isDirty = true // Se marca como dirty
+                isDirty = true
                 onTextFieldChanged(it)
             },
             placeholder = { Text(text = "Nombre") },
@@ -168,7 +186,6 @@ fun NombreField(value: String, onTextFieldChanged: (String) -> Unit) {
                 unfocusedIndicatorColor = Color.Transparent
             )
         )
-        // Se muestra el texto de ayuda solo si está "dirty" y es inválido
         if (isDirty && !isValid) {
             Text(
                 text = helperText,
@@ -183,8 +200,8 @@ fun NombreField(value: String, onTextFieldChanged: (String) -> Unit) {
 @Composable
 fun ApellidoField(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length > 3 && value.any { it.isLetter() }
-    val helperText = "Debe tener más de 3 letras."
+    val isValid = value.length > 2 && value.any { it.isLetter() }
+    val helperText = "Debe tener más de 2 letras."
 
     val containerColor = when {
         !isDirty -> Color(0xFFDEDDDD)
@@ -228,7 +245,7 @@ fun ApellidoField(value: String, onTextFieldChanged: (String) -> Unit) {
 fun EmailFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
     val isValid = Patterns.EMAIL_ADDRESS.matcher(value).matches()
-    val helperText = "Debe ser un email válido (ej: vicente123@gmail.com)."
+    val helperText = "Debe ser un email válido."
 
     val containerColor = when {
         !isDirty -> Color(0xFFDEDDDD)
@@ -271,8 +288,8 @@ fun EmailFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
 @Composable
 fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    val isValid = (value.length > 6 && value.length < 20) && value.any { it.isDigit() }
-    val helperText = "Debe ser entre 7 y 19 caracteres, y tener un número."
+    val isValid = (value.length >= 6)
+    val helperText = "Mínimo 6 caracteres."
 
     val containerColor = when {
         !isDirty -> Color(0xFFDEDDDD)
@@ -316,8 +333,8 @@ fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
 @Composable
 fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length == 10
-    val helperText = "Debe tener 10 dígitos (ej: 912345678)."
+    val isValid = value.length >= 9
+    val helperText = "Mínimo 9 dígitos."
 
     val containerColor = when {
         !isDirty -> Color(0xFFDEDDDD)
@@ -356,10 +373,56 @@ fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
         }
     }
 }
+
+@Composable
+fun DireccionField(value: String, onTextFieldChanged: (String) -> Unit) {
+    var isDirty by remember { mutableStateOf(false) }
+    // Validación simple: más de 5 caracteres
+    val isValid = value.length > 5
+    val helperText = "Dirección muy corta."
+
+    val containerColor = when {
+        !isDirty -> Color(0xFFDEDDDD)
+        isValid -> Color(0xFFC8E6C9)
+        else -> Color(0xFFFFCDD2)
+    }
+
+    Column {
+        TextField(
+            value = value,
+            onValueChange = {
+                isDirty = true
+                onTextFieldChanged(it)
+            },
+            placeholder = { Text(text = "Dirección (Calle, Número, Ciudad)") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            singleLine = true,
+            maxLines = 1,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Color(0xFF636262),
+                unfocusedTextColor = Color(0xFF636262),
+                unfocusedContainerColor = containerColor,
+                focusedContainerColor = containerColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
+        )
+        if (isDirty && !isValid) {
+            Text(
+                text = helperText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
 @Composable
 fun TituloRegistro() {
     Text(
-        text = "¡Unetenos!",
+        text = "¡Únetenos!",
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
         style = TextStyle(
@@ -372,6 +435,3 @@ fun TituloRegistro() {
         )
     )
 }
-
-
-

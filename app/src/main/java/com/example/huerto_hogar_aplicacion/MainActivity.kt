@@ -18,7 +18,6 @@ import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewModel
-import com.example.huerto_hogar_aplicacion.ui.ViewModelFactory
 import com.example.huerto_hogar_aplicacion.data.usuarioPackage.UsuarioRepository
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
@@ -26,22 +25,23 @@ import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.RegistroScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
-import com.example.huerto_hogar_aplicacion.data.AppDatabase
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudUsuariosEditarScreen
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
 
-    private val database by lazy { AppDatabase.get(this) }
-    private val repository by lazy { UsuarioRepository(database.usuarioDao()) }
-    private val viewModelFactory by lazy { ViewModelFactory(repository) }
+    private lateinit var auth: FirebaseAuth
     private val homeViewModel: HomeViewModel by viewModels()
-    private val loginViewModel: LoginViewModel by viewModels { viewModelFactory }
-    private val registroViewModel: RegistroViewModel by viewModels { viewModelFactory }
+    private val loginViewModel: LoginViewModel by viewModels ()
+    private val registroViewModel: RegistroViewModel by viewModels ()
 
-    private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels { viewModelFactory }
+    private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels ()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
         setContent {
             Huerto_Hogar_AplicacionTheme {
                 Surface(
@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     
-                    AppNavigation(homeViewModel,loginViewModel,registroViewModel, crudUsuarioViewModel)
+                    AppNavigation(homeViewModel,loginViewModel,registroViewModel, crudUsuarioViewModel,auth)
                 }
             }
         }
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel, crudUsuarioViewModel: CrudUsuarioViewModel) {
+fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, registroViewModel : RegistroViewModel, crudUsuarioViewModel: CrudUsuarioViewModel,auth: FirebaseAuth) {
     // Se crea el controlador de navegación que gestiona el historial de pantallas.
     //El traspaso de HomeViewModel constante es para poder acceder al estado de login desde cualquier lugar.
     val navController = rememberNavController()
@@ -75,11 +75,11 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
 
 
         composable("login") {
-            LoginScreen(navController = navController, homeViewModel = homeViewModel, loginViewModel = loginViewModel)
+            LoginScreen(navController = navController, homeViewModel = homeViewModel, loginViewModel = loginViewModel,auth = auth)
         }
 
         composable("registro") {
-            RegistroScreen(navController = navController,  registroViewModel = registroViewModel,homeViewModel = homeViewModel)
+            RegistroScreen(navController = navController,  registroViewModel = registroViewModel,homeViewModel = homeViewModel,auth = auth)
         }
 
         composable("lista_productos") {
@@ -89,15 +89,11 @@ fun AppNavigation(homeViewModel: HomeViewModel,loginViewModel: LoginViewModel, r
              CrudUsuariosScreen(navController = navController,crudUsuarioViewModel = crudUsuarioViewModel)
         }
         composable(
-            route = "CrudUsuariosEditarScreen/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.LongType })
+            route = "CrudUsuariosEditarScreen/{userUid}", // Parametro String
+            arguments = listOf(navArgument("userUid") { type = NavType.StringType })
         ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getLong("userId") ?: 0L
-            CrudUsuariosEditarScreen(
-                navController = navController,
-                crudUsuarioViewModel = crudUsuarioViewModel,
-                userId = userId
-            )
+            val userUid = backStackEntry.arguments?.getString("userUid") ?: ""
+            CrudUsuariosEditarScreen(navController, crudUsuarioViewModel, userUid)
         }
     }
 }

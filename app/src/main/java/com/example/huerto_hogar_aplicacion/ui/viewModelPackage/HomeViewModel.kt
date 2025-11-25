@@ -6,36 +6,33 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 sealed class SessionState {
-
-    //  Estado "Logueado": Contiene los datos del usuario como id y nombre, tambien si es admin o no
     data class LoggedIn(
-        val userId: Long,
+        val uid: String,
         val userName: String,
+        val rol: String
+    ) : SessionState() {
+        // Propiedad calculada para que tu HomeScreen funcione sin cambios
         val isAdmin: Boolean
-    ) : SessionState()
+            get() = rol.equals("admin", ignoreCase = true)
+    }
 
-    // Estado "No Logueado": Vacio
-    object LoggedOut : SessionState()
+    object Invitado : SessionState()
 }
 
 class HomeViewModel : ViewModel() {
 
-    // Un solo StateFlow que empieza como 'LoggedOut'
-    private val _sessionState = MutableStateFlow<SessionState>(SessionState.LoggedOut)
+    private val _sessionState = MutableStateFlow<SessionState>(SessionState.Invitado)
     val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
-    // Cuando se validan los datos y hay exito al inicar sesion se llama a esta funcion
-    fun onLoginSuccess(userId: Long, userName: String, isAdmin: Boolean) {
-        // Al cambiar el valor, todas las pantallas que observen 'sessionState' se actualizarán
+    fun onLoginSuccess(uid: String, userName: String, rol: String) {
         _sessionState.value = SessionState.LoggedIn(
-            userId = userId,
+            uid = uid,
             userName = userName,
-            isAdmin = isAdmin
+            rol = rol
         )
     }
 
-    //Funcion para cerrar sesion, simplemente lo vuelve a LoggedOut
     fun onLogout() {
-        _sessionState.value = SessionState.LoggedOut
+        _sessionState.value = SessionState.Invitado
     }
 }
