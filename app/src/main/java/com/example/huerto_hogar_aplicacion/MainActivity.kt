@@ -22,6 +22,7 @@ import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewMo
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ProductoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CarritoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudProductoViewModel
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ClimaViewModel // <--- NUEVO IMPORT
 // --- PANTALLAS ---
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
@@ -35,6 +36,7 @@ import com.example.huerto_hogar_aplicacion.ui.screen.CarritoScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.HistorialScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosEditarScreen
+import com.example.huerto_hogar_aplicacion.ui.screen.ClimaScreen // <--- NUEVO IMPORT
 // --- TEMA Y FIREBASE ---
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.google.firebase.Firebase
@@ -46,8 +48,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     // Declaración de ViewModels
-    // Usamos "by viewModels()" simple porque modificamos los ViewModels para instanciar
-    // sus repositorios internamente (Opción A), evitando errores de Factory.
     private val homeViewModel: HomeViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
     private val registroViewModel: RegistroViewModel by viewModels()
@@ -57,6 +57,9 @@ class MainActivity : ComponentActivity() {
     private val productoViewModel: ProductoViewModel by viewModels()
     private val carritoViewModel: CarritoViewModel by viewModels()
     private val crudProductoViewModel: CrudProductoViewModel by viewModels()
+
+    // ViewModel para Clima
+    private val climaViewModel: ClimaViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +81,7 @@ class MainActivity : ComponentActivity() {
                         productoViewModel = productoViewModel,
                         carritoViewModel = carritoViewModel,
                         crudProductoViewModel = crudProductoViewModel,
+                        climaViewModel = climaViewModel, // Pasamos el VM
                         auth = auth
                     )
                 }
@@ -95,6 +99,7 @@ fun AppNavigation(
     productoViewModel: ProductoViewModel,
     carritoViewModel: CarritoViewModel,
     crudProductoViewModel: CrudProductoViewModel,
+    climaViewModel: ClimaViewModel, // Recibimos el VM
     auth: FirebaseAuth
 ) {
     val navController = rememberNavController()
@@ -130,6 +135,11 @@ fun AppNavigation(
             )
         }
 
+        // --- ZONA DE CLIMA (NUEVO) ---
+        composable("clima") {
+            ClimaScreen(navController = navController, viewModel = climaViewModel)
+        }
+
         // --- ZONA DE COMPRAS (CLIENTE) ---
 
         composable("catalogo") {
@@ -140,7 +150,6 @@ fun AppNavigation(
             route = "detalle_producto/{id}",
             arguments = listOf(navArgument("id") { type = NavType.LongType })
         ) { backStackEntry ->
-            // Recuperamos el ID pasado en la URL
             val id = backStackEntry.arguments?.getLong("id") ?: 0L
             DetalleProductoScreen(
                 navController = navController,
@@ -166,6 +175,7 @@ fun AppNavigation(
                 carritoViewModel = carritoViewModel
             )
         }
+
 
         // --- ZONA ADMINISTRATIVA (ADMIN) ---
 

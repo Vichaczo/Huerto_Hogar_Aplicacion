@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.huerto_hogar_aplicacion"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

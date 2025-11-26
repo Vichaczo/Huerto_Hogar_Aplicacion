@@ -108,7 +108,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
 
             // 3. BOTÓN CLIMA (Cielo)
             Button(
-                onClick = { /* Futura implementación */ },
+                onClick = { navController.navigate("clima") },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFE1F5FE), // <--- FONDO CELESTE CLARO (Cielo)
