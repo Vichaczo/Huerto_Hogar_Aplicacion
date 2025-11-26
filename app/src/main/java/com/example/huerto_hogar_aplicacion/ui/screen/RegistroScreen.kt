@@ -26,6 +26,11 @@ import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import com.google.firebase.auth.FirebaseAuth
+import com.example.huerto_hogar_aplicacion.data.local.UserStore
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegistroScreen(
@@ -57,19 +62,15 @@ fun Registro(
     val email: String by registroViewModel.email.observeAsState(initial = "")
     val password: String by registroViewModel.password.observeAsState(initial = "")
     val telefono: String by registroViewModel.telefono.observeAsState(initial = "")
-
-    // NUEVO: Estado para la Dirección
     val direccion: String by registroViewModel.direccion.observeAsState(initial = "")
 
     val registroEnable: Boolean by registroViewModel.registroEnable.observeAsState(initial = false)
-
-    // Estados para feedback visual (Carga y Errores)
     val isLoading: Boolean by registroViewModel.isLoading.observeAsState(initial = false)
     val errorMensaje: String? by registroViewModel.errorMensaje.observeAsState(initial = null)
 
+    // Contexto para DataStore
     val context = LocalContext.current
 
-    // Efecto para mostrar Toast si ocurre un error
     LaunchedEffect(errorMensaje) {
         errorMensaje?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -77,9 +78,11 @@ fun Registro(
     }
 
     if (isLoading) {
-        // Spinner de carga
         Box(Modifier.fillMaxSize()) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center))
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF6D4C41) // Café
+            )
         }
     } else {
         Column(
@@ -89,46 +92,47 @@ fun Registro(
             TituloRegistro()
             Spacer(modifier = Modifier.padding(16.dp))
 
-            // --- CAMPOS DE TEXTO ---
-            // Nota: Al cambiar un campo, debemos pasar TODOS los valores actuales al ViewModel
-            // para que no se borren los otros datos.
-
-            NombreField(nombre) {
-                registroViewModel.onRegisterChanged(it, apellido, email, password, telefono, direccion)
-            }
+            // CAMPOS DE TEXTO
+            NombreField(nombre) { registroViewModel.onRegisterChanged(it, apellido, email, password, telefono, direccion) }
             Spacer(modifier = Modifier.padding(4.dp))
 
-            ApellidoField(apellido) {
-                registroViewModel.onRegisterChanged(nombre, it, email, password, telefono, direccion)
-            }
+            ApellidoField(apellido) { registroViewModel.onRegisterChanged(nombre, it, email, password, telefono, direccion) }
             Spacer(modifier = Modifier.padding(4.dp))
 
-            EmailFieldRegister(email) {
-                registroViewModel.onRegisterChanged(nombre, apellido, it, password, telefono, direccion)
-            }
+            EmailFieldRegister(email) { registroViewModel.onRegisterChanged(nombre, apellido, it, password, telefono, direccion) }
             Spacer(modifier = Modifier.padding(4.dp))
 
-            PasswordFieldRegister(password) {
-                registroViewModel.onRegisterChanged(nombre, apellido, email, it, telefono, direccion)
-            }
+            PasswordFieldRegister(password) { registroViewModel.onRegisterChanged(nombre, apellido, email, it, telefono, direccion) }
             Spacer(modifier = Modifier.padding(4.dp))
 
-            TelefonoField(telefono) {
-                registroViewModel.onRegisterChanged(nombre, apellido, email, password, it, direccion)
-            }
+            TelefonoField(telefono) { registroViewModel.onRegisterChanged(nombre, apellido, email, password, it, direccion) }
             Spacer(modifier = Modifier.padding(4.dp))
 
-            // NUEVO: Campo de Dirección
-            DireccionField(direccion) {
-                registroViewModel.onRegisterChanged(nombre, apellido, email, password, telefono, it)
-            }
+            DireccionField(direccion) { registroViewModel.onRegisterChanged(nombre, apellido, email, password, telefono, it) }
             Spacer(modifier = Modifier.padding(16.dp))
 
-            // --- BOTÓN DE REGISTRO ---
+            // BOTÓN DE REGISTRO
             Button(
                 onClick = {
                     registroViewModel.performRegistro(auth, homeViewModel) {
-                        // Éxito: Navegar al Home y limpiar stack
+                        // LÓGICA DE ÉXITO:
+
+                        // 1. Obtenemos la sesión recién creada en memoria
+                        val state = homeViewModel.sessionState.value
+
+                        // 2. Guardamos en DataStore (Disco Local)
+                        if (state is SessionState.LoggedIn) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val userStore = UserStore(context)
+                                userStore.saveUser(
+                                    uid = state.uid,
+                                    name = state.userName,
+                                    role = state.rol
+                                )
+                            }
+                        }
+
+                        // 3. Navegar al Home
                         navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
@@ -143,146 +147,39 @@ fun Registro(
                     contentColor = Color.White,
                     disabledContentColor = Color.White
                 ),
-                enabled = registroEnable
+                enabled = registroEnable,
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text(text = "Registrarse")
+                Text(text = "Registrarse", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
-// --- COMPONENTES UI AUXILIARES ---
 
 @Composable
 fun NombreField(value: String, onTextFieldChanged: (String) -> Unit) {
-    var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length > 2 && value.any { it.isLetter() }
-    val helperText = "Debe tener más de 2 letras."
-
-    val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
-    }
-
-    Column {
-        TextField(
-            value = value,
-            onValueChange = {
-                isDirty = true
-                onTextFieldChanged(it)
-            },
-            placeholder = { Text(text = "Nombre") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color(0xFF636262),
-                unfocusedTextColor = Color(0xFF636262),
-                unfocusedContainerColor = containerColor,
-                focusedContainerColor = containerColor,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-        if (isDirty && !isValid) {
-            Text(
-                text = helperText,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
-        }
-    }
+    GenericTextField(value, onTextFieldChanged, "Nombre")
 }
 
 @Composable
 fun ApellidoField(value: String, onTextFieldChanged: (String) -> Unit) {
-    var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length > 2 && value.any { it.isLetter() }
-    val helperText = "Debe tener más de 2 letras."
-
-    val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
-    }
-
-    Column {
-        TextField(
-            value = value,
-            onValueChange = {
-                isDirty = true
-                onTextFieldChanged(it)
-            },
-            placeholder = { Text(text = "Apellido") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color(0xFF636262),
-                unfocusedTextColor = Color(0xFF636262),
-                unfocusedContainerColor = containerColor,
-                focusedContainerColor = containerColor,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-        if (isDirty && !isValid) {
-            Text(
-                text = helperText,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
-        }
-    }
+    GenericTextField(value, onTextFieldChanged, "Apellido")
 }
 
 @Composable
 fun EmailFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
-    var isDirty by remember { mutableStateOf(false) }
-    val isValid = Patterns.EMAIL_ADDRESS.matcher(value).matches()
-    val helperText = "Debe ser un email válido."
+    GenericTextField(value, onTextFieldChanged, "Email", KeyboardType.Email)
+}
 
-    val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
-    }
+@Composable
+fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
+    GenericTextField(value, onTextFieldChanged, "Teléfono", KeyboardType.Phone)
+}
 
-    Column {
-        TextField(
-            value = value,
-            onValueChange = {
-                isDirty = true
-                onTextFieldChanged(it)
-            },
-            placeholder = { Text(text = "Email") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color(0xFF636262),
-                unfocusedTextColor = Color(0xFF636262),
-                unfocusedContainerColor = containerColor,
-                focusedContainerColor = containerColor,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-        if (isDirty && !isValid) {
-            Text(
-                text = helperText,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
-        }
-    }
+@Composable
+fun DireccionField(value: String, onTextFieldChanged: (String) -> Unit) {
+    GenericTextField(value, onTextFieldChanged, "Dirección")
 }
 
 @Composable
@@ -293,8 +190,8 @@ fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
 
     val containerColor = when {
         !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
+        isValid -> Color(0xFFC8E6C9) // Verde
+        else -> Color(0xFFFFCDD2) // Rojo
     }
 
     Column {
@@ -317,7 +214,8 @@ fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
                 focusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
-            )
+            ),
+            shape = MaterialTheme.shapes.small
         )
         if (isDirty && !isValid) {
             Text(
@@ -331,27 +229,26 @@ fun PasswordFieldRegister(value: String, onTextFieldChanged: (String) -> Unit) {
 }
 
 @Composable
-fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
+fun GenericTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
     var isDirty by remember { mutableStateOf(false) }
-    val isValid = value.length >= 9
-    val helperText = "Mínimo 9 dígitos."
-
-    val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
-    }
+    val isValid = value.isNotBlank()
+    val containerColor = if (!isDirty) Color(0xFFDEDDDD) else if (isValid) Color(0xFFC8E6C9) else Color(0xFFFFCDD2)
 
     Column {
         TextField(
             value = value,
             onValueChange = {
                 isDirty = true
-                onTextFieldChanged(it)
+                onValueChange(it)
             },
-            placeholder = { Text(text = "Teléfono") },
+            placeholder = { Text(text = placeholder) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true,
             maxLines = 1,
             colors = TextFieldDefaults.colors(
@@ -361,61 +258,9 @@ fun TelefonoField(value: String, onTextFieldChanged: (String) -> Unit) {
                 focusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
-            )
+            ),
+            shape = MaterialTheme.shapes.small
         )
-        if (isDirty && !isValid) {
-            Text(
-                text = helperText,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun DireccionField(value: String, onTextFieldChanged: (String) -> Unit) {
-    var isDirty by remember { mutableStateOf(false) }
-    // Validación simple: más de 5 caracteres
-    val isValid = value.length > 5
-    val helperText = "Dirección muy corta."
-
-    val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD)
-        isValid -> Color(0xFFC8E6C9)
-        else -> Color(0xFFFFCDD2)
-    }
-
-    Column {
-        TextField(
-            value = value,
-            onValueChange = {
-                isDirty = true
-                onTextFieldChanged(it)
-            },
-            placeholder = { Text(text = "Dirección (Calle, Número, Ciudad)") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color(0xFF636262),
-                unfocusedTextColor = Color(0xFF636262),
-                unfocusedContainerColor = containerColor,
-                focusedContainerColor = containerColor,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-        if (isDirty && !isValid) {
-            Text(
-                text = helperText,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
-        }
     }
 }
 
@@ -426,7 +271,7 @@ fun TituloRegistro() {
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
         style = TextStyle(
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color(0xFF6D4C41), // Café
             shadow = Shadow(
                 color = CafeSombraTexto,
                 offset = Offset(x = 2f, y = 2f),

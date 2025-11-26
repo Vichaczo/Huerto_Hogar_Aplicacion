@@ -21,10 +21,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+// IMPORTS DE TUS VIEWMODELS Y CLASES
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.theme.CafeSombraTexto
 import com.google.firebase.auth.FirebaseAuth
+// IMPORTS PARA DATASTORE (PERSISTENCIA)
+import com.example.huerto_hogar_aplicacion.data.local.UserStore
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -68,7 +75,10 @@ fun Login(
 
     if (isLoading) {
         Box(Modifier.fillMaxSize()) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center))
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF6D4C41) // Café
+            )
         }
     } else {
         Column(
@@ -88,13 +98,29 @@ fun Login(
             ForgotPassword(Modifier.align(Alignment.End))
             Spacer(modifier = Modifier.padding(16.dp))
 
-            // BOTÓN LOGIN CON LA NUEVA LÓGICA
+            // BOTÓN LOGIN
             LoginButton(loginEnable) {
-                // Delegamos toda la lógica al ViewModel (Firebase + Backend)
+                // Llamamos al ViewModel para autenticar con Firebase y Backend
                 loginViewModel.realizarLogin(auth, homeViewModel) {
-                    // Este bloque se ejecuta solo si todo sale bien (onSuccess)
+
+                    //  Si es exitoso (onSuccess):
+                    // Obtenemos los datos de sesión que el ViewModel acaba de cargar
+                    val state = homeViewModel.sessionState.value
+
+                    if (state is SessionState.LoggedIn) {
+                        //  Guardamos la sesión en DataStore (Local)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val userStore = UserStore(context)
+                            userStore.saveUser(
+                                uid = state.uid,
+                                name = state.userName,
+                                role = state.rol
+                            )
+                        }
+                    }
+
+                    //  Navegamos al Home y limpiamos el historial
                     navController.navigate("home") {
-                        // Limpia el stack para que no pueda volver al login con "atrás"
                         popUpTo("login") { inclusive = true }
                     }
                 }
@@ -106,7 +132,6 @@ fun Login(
     }
 }
 
-// --- COMPONENTES UI AUXILIARES ---
 
 @Composable
 fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
@@ -121,9 +146,10 @@ fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
             contentColor = Color.White,
             disabledContentColor = Color.White
         ),
-        enabled = loginEnable
+        enabled = loginEnable,
+        shape = MaterialTheme.shapes.medium
     ) {
-        Text(text = "Iniciar sesión")
+        Text(text = "Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -139,7 +165,6 @@ fun ForgotPassword(modifier: Modifier) {
     Text(
         text = "¿Olvidaste la contraseña?",
         modifier = modifier.clickable {
-            // Opcional: Implementar recuperación de contraseña de Firebase aquí si sobra tiempo
         },
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
@@ -151,12 +176,12 @@ fun ForgotPassword(modifier: Modifier) {
 fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
     var isDirty by remember { mutableStateOf(false) }
     val isValid = password.isNotBlank() && password.length >= 6
-    val helperText = "Contraseña no válida"
+    val helperText = "Contraseña no válida (mínimo 6 caracteres)"
 
     val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD) // Color inicial
-        isValid -> Color(0xFFC8E6C9) // Verde si es válido
-        else -> Color(0xFFFFCDD2) // Rojo si es inválido
+        !isDirty -> Color(0xFFDEDDDD) // Gris inicial
+        isValid -> Color(0xFFC8E6C9) // Verde válido
+        else -> Color(0xFFFFCDD2) // Rojo inválido
     }
 
     Column {
@@ -179,7 +204,8 @@ fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
                 focusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
-            )
+            ),
+            shape = MaterialTheme.shapes.small
         )
         if (isDirty && !isValid) {
             Text(
@@ -199,9 +225,9 @@ fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     val helperText = "Correo no válido"
 
     val containerColor = when {
-        !isDirty -> Color(0xFFDEDDDD) // Color inicial
-        isValid -> Color(0xFFC8E6C9) // Verde si es válido
-        else -> Color(0xFFFFCDD2) // Rojo si es inválido
+        !isDirty -> Color(0xFFDEDDDD)
+        isValid -> Color(0xFFC8E6C9)
+        else -> Color(0xFFFFCDD2)
     }
 
     Column {
@@ -223,7 +249,8 @@ fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
                 focusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
-            )
+            ),
+            shape = MaterialTheme.shapes.small
         )
         if (isDirty && !isValid) {
             Text(
@@ -243,7 +270,7 @@ fun Logo() {
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
         style = TextStyle(
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color(0xFF6D4C41),
             shadow = Shadow(
                 color = CafeSombraTexto,
                 offset = Offset(x = 2f, y = 2f),

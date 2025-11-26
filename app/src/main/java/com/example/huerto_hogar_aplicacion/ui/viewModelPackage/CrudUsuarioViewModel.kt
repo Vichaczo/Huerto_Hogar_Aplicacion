@@ -26,8 +26,8 @@ data class EditUserState(
     val email: String = "",
     val password: String = "",
     val telefono: String = "",
-    val direccion: String = "", // NUEVO
-    val rol: String = "usuario", // NUEVO (editable)
+    val direccion: String = "",
+    val rol: String = "usuario",
     val isUpdateEnabled: Boolean = false,
     val isLoadingUser: Boolean = false,
     val error: String? = null
@@ -98,7 +98,6 @@ class CrudUsuarioViewModel : ViewModel() {
         }
     }
 
-    // --- CARGA DE DATOS PARA EDICIÓN ---
     fun loadUserByUid(uid: String) {
         viewModelScope.launch {
             _editUserState.value = _editUserState.value.copy(isLoadingUser = true, error = null)

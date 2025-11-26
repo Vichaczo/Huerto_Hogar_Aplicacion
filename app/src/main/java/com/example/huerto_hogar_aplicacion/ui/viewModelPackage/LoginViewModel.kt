@@ -50,13 +50,13 @@ class LoginViewModel() : ViewModel() {
                     val firebaseUser = auth.currentUser
                     val uid = firebaseUser?.uid ?: ""
 
-                    // 2. Si Firebase dice OK, buscamos los datos en TU Backend (Spring Boot)
+                    // 2. Si Firebase dice OK, buscamos los datos en Backend (Spring Boot AWS)
                     viewModelScope.launch {
                         try {
                             val usuarioBackend = repo.obtenerUsuario(uid)
 
                             if (usuarioBackend != null) {
-                                // 3. ¡Éxito total! Actualizamos la sesión global
+                                //  Éxito Actualizamos la sesión global
                                 homeViewModel.onLoginSuccess(
                                     uid = usuarioBackend.uid,
                                     userName = usuarioBackend.nombre ?: "Usuario",
@@ -65,12 +65,12 @@ class LoginViewModel() : ViewModel() {
                                 _isLoading.value = false
                                 onSuccess() // Navegar al Home
                             } else {
-                                // Caso raro: Está en Firebase pero no en tu MySQL
+                                // Caso raro: Está en Firebase pero no en mi MySQL
                                 _loginError.value = "Usuario no encontrado en la base de datos."
                                 _isLoading.value = false
                             }
                         } catch (e: Exception) {
-                            // Error de conexión con tu Backend (EC2 apagado, etc.)
+                            // Error de conexión con Backend (EC2 apagado, etc.)
                             _loginError.value = "Error conectando al servidor: ${e.message}"
                             _isLoading.value = false
                         }

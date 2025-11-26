@@ -71,7 +71,7 @@ fun ClimaScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // --- SECCIÓN 1: CLIMA ACTUAL ---
+            //  CLIMA ACTUAL
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE1F5FE)), // Celeste suave
                 elevation = CardDefaults.cardElevation(4.dp),
@@ -111,7 +111,7 @@ fun ClimaScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // --- SECCIÓN 2: BOTÓN GPS (ROJO/VERDE) ---
+            //  BOTÓN GPS (ROJO/VERDE)
             Text("Ubicación del Dispositivo", fontWeight = FontWeight.Bold, color = Color.Gray)
             Spacer(Modifier.height(8.dp))
 
@@ -142,7 +142,7 @@ fun ClimaScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // --- SECCIÓN 3: PRONÓSTICO SEMANAL ---
+            //  PRONÓSTICO SEMANAL ---
             Text(
                 text = "Pronóstico Semanal",
                 modifier = Modifier.align(Alignment.Start),

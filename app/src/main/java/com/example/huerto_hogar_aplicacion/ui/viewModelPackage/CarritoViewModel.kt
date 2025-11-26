@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 
 class CarritoViewModel : ViewModel() {
 
-    // Opción A: Instancia directa
     private val api = RetrofitClient.api
 
     private val _items = MutableStateFlow<List<CarritoItem>>(emptyList())

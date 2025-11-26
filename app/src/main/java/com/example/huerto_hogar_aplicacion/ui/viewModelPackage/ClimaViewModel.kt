@@ -92,7 +92,6 @@ class ClimaViewModel : ViewModel() {
         }
     }
 
-    // Iconos según código WMO
     fun getWeatherIcon(code: Int): String {
         return when (code) {
             0 -> "☀️" // Despejado

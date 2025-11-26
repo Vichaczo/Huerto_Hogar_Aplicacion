@@ -24,7 +24,6 @@ data class EditProductoState(
 
 class CrudProductoViewModel : ViewModel() {
 
-    // Instancia del repo (Opción A)
     private val repository = ProductoRepository()
 
     private val _allProductos = MutableStateFlow<List<Producto>>(emptyList())

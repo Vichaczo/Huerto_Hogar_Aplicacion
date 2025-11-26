@@ -22,7 +22,6 @@ class ProductoRepository {
         }
     }
 
-    // NUEVO: Guardar (Sirve para Crear y Editar gracias a Spring Boot)
     suspend fun guardarProducto(producto: Producto): Producto? {
         return try {
             api.guardarProducto(producto)
@@ -32,7 +31,6 @@ class ProductoRepository {
         }
     }
 
-    // NUEVO: Eliminar
     suspend fun eliminarProducto(id: Long) {
         try {
             api.eliminarProducto(id)

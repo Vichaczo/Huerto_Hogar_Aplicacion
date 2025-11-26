@@ -99,7 +99,6 @@ fun CarritoScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Mi Carrito", fontWeight = FontWeight.Bold, color = Color(0xFF5D4037)) }, // Título Café
                 actions = {
-                    // --- BOTÓN HISTORIAL CORREGIDO ---
                     IconButton(onClick = { navController.navigate("historial") }) {
                         Icon(
                             imageVector = Icons.Filled.DateRange, // Ícono de hoja de calendario/historial

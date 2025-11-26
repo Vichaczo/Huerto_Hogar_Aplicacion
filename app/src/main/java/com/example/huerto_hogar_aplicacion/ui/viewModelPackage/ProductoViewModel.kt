@@ -19,10 +19,8 @@ class ProductoViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Categorías que se muestran como Chips (Filtros)
     val categorias = listOf("Todo", "Frutas", "Verduras", "Snacks", "Especias", "Otros")
 
-    // Categorías "Estándar" para saber qué excluir en "Otros"
     private val categoriasEstandar = listOf("Frutas", "Verduras", "Snacks", "Especias")
 
     private val _categoriaSeleccionada = MutableStateFlow("Todo")

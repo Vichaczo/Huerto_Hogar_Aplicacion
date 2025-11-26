@@ -83,6 +83,8 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
     implementation("androidx.room:room-paging:${room_version}")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

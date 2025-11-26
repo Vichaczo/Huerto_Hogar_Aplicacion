@@ -14,7 +14,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-// --- VIEWMODELS ---
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.LoginViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.RegistroViewModel
@@ -22,8 +21,7 @@ import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudUsuarioViewMo
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ProductoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CarritoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CrudProductoViewModel
-import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ClimaViewModel // <--- NUEVO IMPORT
-// --- PANTALLAS ---
+import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.ClimaViewModel
 import com.example.huerto_hogar_aplicacion.ui.screen.HomeScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.SplashScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.LoginScreen
@@ -36,8 +34,7 @@ import com.example.huerto_hogar_aplicacion.ui.screen.CarritoScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.HistorialScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosScreen
 import com.example.huerto_hogar_aplicacion.ui.screen.CrudProductosEditarScreen
-import com.example.huerto_hogar_aplicacion.ui.screen.ClimaScreen // <--- NUEVO IMPORT
-// --- TEMA Y FIREBASE ---
+import com.example.huerto_hogar_aplicacion.ui.screen.ClimaScreen
 import com.example.huerto_hogar_aplicacion.ui.theme.Huerto_Hogar_AplicacionTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -47,24 +44,20 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var auth: FirebaseAuth
 
-    // Declaración de ViewModels
     private val homeViewModel: HomeViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
     private val registroViewModel: RegistroViewModel by viewModels()
     private val crudUsuarioViewModel: CrudUsuarioViewModel by viewModels()
 
-    // Nuevos ViewModels para el E-commerce y Admin
     private val productoViewModel: ProductoViewModel by viewModels()
     private val carritoViewModel: CarritoViewModel by viewModels()
     private val crudProductoViewModel: CrudProductoViewModel by viewModels()
 
-    // ViewModel para Clima
     private val climaViewModel: ClimaViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializar Firebase
         auth = Firebase.auth
 
         setContent {
@@ -81,7 +74,7 @@ class MainActivity : ComponentActivity() {
                         productoViewModel = productoViewModel,
                         carritoViewModel = carritoViewModel,
                         crudProductoViewModel = crudProductoViewModel,
-                        climaViewModel = climaViewModel, // Pasamos el VM
+                        climaViewModel = climaViewModel,
                         auth = auth
                     )
                 }
@@ -99,15 +92,14 @@ fun AppNavigation(
     productoViewModel: ProductoViewModel,
     carritoViewModel: CarritoViewModel,
     crudProductoViewModel: CrudProductoViewModel,
-    climaViewModel: ClimaViewModel, // Recibimos el VM
+    climaViewModel: ClimaViewModel,
     auth: FirebaseAuth
 ) {
     val navController = rememberNavController()
 
-    // Definimos el grafo de navegación. "splash" es la primera pantalla.
     NavHost(navController = navController, startDestination = "splash") {
 
-        // --- PANTALLAS DE INICIO Y AUTENTICACIÓN ---
+        //  PANTALLAS DE INICIO Y AUTENTICACIÓN
 
         composable("splash") {
             SplashScreen(navController = navController)
@@ -135,12 +127,12 @@ fun AppNavigation(
             )
         }
 
-        // --- ZONA DE CLIMA (NUEVO) ---
+        //  ZONA DE CLIMA
         composable("clima") {
             ClimaScreen(navController = navController, viewModel = climaViewModel)
         }
 
-        // --- ZONA DE COMPRAS (CLIENTE) ---
+        // ZONA DE COMPRAS (CLIENTE)
 
         composable("catalogo") {
             CatalogoScreen(navController = navController, viewModel = productoViewModel)
@@ -179,7 +171,7 @@ fun AppNavigation(
 
         // --- ZONA ADMINISTRATIVA (ADMIN) ---
 
-        // 1. Gestión de Usuarios
+        // Gestión de Usuarios
         composable("CrudUsuariosScreen") {
             CrudUsuariosScreen(navController = navController, crudUsuarioViewModel = crudUsuarioViewModel)
         }
@@ -192,7 +184,7 @@ fun AppNavigation(
             CrudUsuariosEditarScreen(navController, crudUsuarioViewModel, userUid)
         }
 
-        // 2. Gestión de Productos (Inventario)
+        //  Gestión de Productos (Inventario)
         composable("crud_productos") {
             CrudProductosScreen(navController = navController, viewModel = crudProductoViewModel)
         }

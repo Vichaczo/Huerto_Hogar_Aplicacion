@@ -12,10 +12,8 @@ import kotlinx.coroutines.launch
 
 class RegistroViewModel() : ViewModel() {
 
-    // Instanciamos el repositorio aquí (Opción A: Rápida)
     private val repo = UsuarioRepository()
 
-    // LiveData para los campos de texto
     private val _nombre = MutableLiveData<String>()
     val nombre: LiveData<String> = _nombre
     private val _apellido = MutableLiveData<String>()
@@ -27,7 +25,6 @@ class RegistroViewModel() : ViewModel() {
     private val _telefono = MutableLiveData<String>()
     val telefono: LiveData<String> = _telefono
 
-    // --- NUEVO CAMPO: DIRECCIÓN ---
     private val _direccion = MutableLiveData<String>()
     val direccion: LiveData<String> = _direccion
 
@@ -54,7 +51,7 @@ class RegistroViewModel() : ViewModel() {
                 isValidEmail(email) &&
                 isValidPassword(password) &&
                 isValidTelefono(telefono) &&
-                isValidDireccion(direccion) // Nueva validación
+                isValidDireccion(direccion)
     }
 
     // --- FUNCIÓN PRINCIPAL DE REGISTRO ---

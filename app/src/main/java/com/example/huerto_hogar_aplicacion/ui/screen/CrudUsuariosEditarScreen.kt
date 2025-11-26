@@ -100,7 +100,7 @@ fun EditarUsuarioForm(
         )
         Spacer(Modifier.height(8.dp))
 
-        // --- NUEVO CAMPO: DIRECCIÓN ---
+        // CAMPO: DIRECCIÓN ---
         OutlinedTextField(
             value = editState.direccion,
             onValueChange = { onFieldChanged(editState.nombre, editState.apellido, editState.email, editState.password, editState.telefono, it, editState.rol) },
@@ -108,7 +108,7 @@ fun EditarUsuarioForm(
         )
         Spacer(Modifier.height(16.dp))
 
-        // --- NUEVO CAMPO: SELECCIÓN DE ROL ---
+        // CAMPO: SELECCIÓN DE ROL ---
         Text("Rol de Usuario:", fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
         Spacer(Modifier.height(8.dp))
 

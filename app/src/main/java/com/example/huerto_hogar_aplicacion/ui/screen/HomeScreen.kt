@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -14,6 +15,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
+import com.example.huerto_hogar_aplicacion.data.local.UserStore
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,18 +34,30 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
         welcomeText = if (isAdmin) "Bienvenido, Administrador" else "Bienvenido, ${currentState.userName}"
     }
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("") },
                 actions = {
                     if (sessionState is SessionState.LoggedIn) {
-                        TextButton(onClick = { homeViewModel.onLogout() }) {
-                            Text("Cerrar Sesión", color = Color(0xFF5D4037)) // Café
+                        TextButton(onClick = {
+                            // LOGOUT
+                            homeViewModel.onLogout()
+                            scope.launch {
+                                UserStore(context).clearUser()
+                            }
+                            navController.navigate("login") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }) {
+                            Text("Cerrar Sesión", color = Color(0xFF6D4C41))
                         }
                     } else {
                         TextButton(onClick = { navController.navigate("login") }) {
-                            Text("Iniciar Sesión", color = Color(0xFF2E7D32)) // Verde
+                            Text("Iniciar Sesión", color = Color(0xFF6D4C41))
                         }
                     }
                 }
@@ -62,40 +77,39 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF6D4C41) // Café Título
+                color = Color(0xFF6D4C41)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = if (isAdmin) "Panel de Gestión" else "Tu huerto en casa, a un click.",
                 textAlign = TextAlign.Center,
-                color = Color(0xFF8D6E63),
+                color = Color(0xFF8D6E63), // Café suave
                 fontSize = 16.sp
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // 1. BOTÓN AL MERCADITO
+            //  BOTÓN TIENDA
             Button(
                 onClick = { navController.navigate("catalogo") },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2E7D32), // Fondo Verde
-                    contentColor = Color(0xFF5D4037)    // <--- LETRAS CAFÉ (Solicitado)
+                    containerColor = Color(0xFF2E7D32),
+                    contentColor = Color.White
                 ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                // Forzamos el color aquí también por seguridad
-                Text("Ir al Mercadito", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
+                Text("Ir a tienda", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. BOTÓN CARRITO
+            // BOTÓN CARRITO
             Button(
                 onClick = { navController.navigate("carrito") },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6D4C41), // Café
+                    containerColor = Color(0xFF6D4C41),
                     disabledContainerColor = Color.LightGray
                 ),
                 shape = MaterialTheme.shapes.medium,
@@ -106,23 +120,23 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. BOTÓN CLIMA (Cielo)
+            // BOTÓN CLIMA
             Button(
                 onClick = { navController.navigate("clima") },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE1F5FE), // <--- FONDO CELESTE CLARO (Cielo)
-                    contentColor = Color(0xFF0277BD)    // <--- TEXTO AZUL INTACTO
+                    containerColor = Color(0xFF81D4FA),
+                    contentColor = Color(0xFF01579B)
                 ),
                 shape = MaterialTheme.shapes.medium,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF81D4FA))
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF4FC3F7))
             ) {
-                Text("☀️ Revisar el Clima del Huerto")
+                Text("☀️ Revisar el clima", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. ZONA ADMIN
+            //  ZONA ADMIN
             if (isAdmin) {
                 HorizontalDivider(color = Color(0xFFD7CCC8))
                 Spacer(modifier = Modifier.height(16.dp))

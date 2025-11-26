@@ -47,7 +47,6 @@ fun DetalleProductoScreen(
     var cantidad by remember { mutableStateOf(1) }
     val context = LocalContext.current
 
-    // FONDO CÁLIDO (Crema suave) en lugar de Blanco
     Box(Modifier.fillMaxSize().background(Color(0xFFFFF8E1))) {
         if (isLoading || producto == null) {
             CircularProgressIndicator(Modifier.align(Alignment.Center), color = Color(0xFF6D4C41))
@@ -60,18 +59,17 @@ fun DetalleProductoScreen(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 1. TÍTULO CENTRADO EN CAFÉ
                 Text(
                     text = p.nombre,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF5D4037), // Café Título
+                    color = Color(0xFF5D4037),
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(Modifier.height(24.dp))
 
-                // 2. IMAGEN
+                //  IMAGEN
                 Card(
                     shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.cardElevation(6.dp)
@@ -88,11 +86,11 @@ fun DetalleProductoScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // 3. DESCRIPCIÓN
+                //  DESCRIPCIÓN
                 if (!p.descripcion.isNullOrEmpty()) {
                     Text(
                         text = p.descripcion,
-                        color = Color(0xFF4E342E), // Café oscuro
+                        color = Color(0xFF4E342E),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                         lineHeight = 24.sp
@@ -101,7 +99,7 @@ fun DetalleProductoScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // 4. CUADRO DE STOCK Y PRECIO
+                // CUADRO DE STOCK Y PRECIO
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
@@ -114,7 +112,7 @@ fun DetalleProductoScreen(
                         Text(
                             text = "$${p.precio.toInt()}",
                             fontSize = 28.sp,
-                            color = Color(0xFF2E7D32), // Verde Precio
+                            color = Color(0xFF2E7D32),
                             fontWeight = FontWeight.ExtraBold
                         )
 
@@ -157,7 +155,7 @@ fun DetalleProductoScreen(
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.height(24.dp))
 
-                // 5. BOTÓN AGREGAR (Combinado)
+                //  BOTÓN AGREGAR
                 Button(
                     onClick = {
                         if (isInvitado) {

@@ -86,9 +86,6 @@ interface HuertoApi {
     suspend fun historialCompras(@Path("uid") uid: String): List<Orden>
 }
 
-// --- DTOs (Objetos de Transferencia de Datos) ---
-
-// Necesario para enviar el JSON exacto: { "uid": "...", "productoId": 1, "cantidad": 5 }
 data class CarritoRequest(
     val uid: String,
     val productoId: Long,

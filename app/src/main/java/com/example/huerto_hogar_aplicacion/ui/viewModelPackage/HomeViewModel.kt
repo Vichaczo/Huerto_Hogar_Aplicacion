@@ -11,7 +11,6 @@ sealed class SessionState {
         val userName: String,
         val rol: String
     ) : SessionState() {
-        // Propiedad calculada para que tu HomeScreen funcione sin cambios
         val isAdmin: Boolean
             get() = rol.equals("admin", ignoreCase = true)
     }

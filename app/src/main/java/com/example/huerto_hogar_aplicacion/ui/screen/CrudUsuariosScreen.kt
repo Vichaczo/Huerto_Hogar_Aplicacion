@@ -25,8 +25,8 @@ fun CrudUsuariosScreen(
     navController: NavController,
     crudUsuarioViewModel: CrudUsuarioViewModel
 ) {
-    // 1. RECARGA AUTOMÁTICA:
-    // Cada vez que se abre esta pantalla, llamamos a la API para traer datos frescos.
+    //  RECARGA AUTOMÁTICA:
+    // Cada vez que se abre esta pantalla, llamamos a la API para traer datos
     LaunchedEffect(Unit) {
         crudUsuarioViewModel.fetchUsuarios()
     }
@@ -39,7 +39,7 @@ fun CrudUsuariosScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // --- BARRA SUPERIOR (BÚSQUEDA Y AGREGAR) ---
+        // BARRA SUPERIOR (BÚSQUEDA Y AGREGAR) ---
         SearchBarAndActions(
             query = state.currentQuery,
             onQueryChanged = crudUsuarioViewModel::onQueryChanged,
@@ -75,7 +75,7 @@ fun CrudUsuariosScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Importante: Usamos 'uid' como llave única
+                // Usamos 'uid' como llave única
                 items(state.users, key = { it.uid }) { user ->
                     UserCard(
                         user = user,
@@ -93,7 +93,6 @@ fun CrudUsuariosScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES ---
 
 @Composable
 fun SearchBarAndActions(query: String, onQueryChanged: (String) -> Unit, onAddClicked: () -> Unit) {
@@ -155,7 +154,7 @@ fun UserCard(
             // Datos del Usuario
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = user.nombre ?: "Sin Nombre", // Manejo de nulos
+                    text = user.nombre ?: "Sin Nombre",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = Color.White
@@ -170,7 +169,6 @@ fun UserCard(
                     fontSize = 14.sp,
                     color = Color(0xFFE8F5E9)
                 )
-                // Mostrar Rol solo si es admin para diferenciar
                 if (user.rol == "admin") {
                     Text(
                         text = "★ ADMIN",

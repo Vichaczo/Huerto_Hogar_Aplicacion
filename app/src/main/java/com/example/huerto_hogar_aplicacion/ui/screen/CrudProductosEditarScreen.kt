@@ -30,7 +30,6 @@ fun CrudProductosEditarScreen(
     viewModel: CrudProductoViewModel,
     productoId: Long
 ) {
-    // Preparar datos al entrar
     LaunchedEffect(productoId) {
         viewModel.prepareForEdit(productoId)
     }
@@ -57,7 +56,6 @@ fun CrudProductosEditarScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // PREVISUALIZACIÓN DE IMAGEN
                     // Si el usuario pega un link, intentamos mostrarlo. Si no, placeholder.
                     Card(
                         modifier = Modifier.size(120.dp),
@@ -97,7 +95,7 @@ fun CrudProductosEditarScreen(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // CAMPO: PRECIO (Numérico)
+                    // CAMPO: PRECIO
                     OutlinedTextField(
                         value = state.precio,
                         onValueChange = { viewModel.onFieldChanged(state.nombre, state.descripcion, it, state.stock, state.categoria, state.imagenUrl) },
@@ -108,7 +106,7 @@ fun CrudProductosEditarScreen(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // CAMPO: STOCK (Numérico)
+                    // CAMPO: STOCK
                     OutlinedTextField(
                         value = state.stock,
                         onValueChange = { viewModel.onFieldChanged(state.nombre, state.descripcion, state.precio, it, state.categoria, state.imagenUrl) },
@@ -119,7 +117,7 @@ fun CrudProductosEditarScreen(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // CAMPO: CATEGORÍA (Dropdown Menu Mejorado)
+                    // CAMPO: CATEGORÍA
                     ExposedDropdownMenuBox(
                         expanded = expandedCategoria,
                         onExpandedChange = { expandedCategoria = !expandedCategoria },

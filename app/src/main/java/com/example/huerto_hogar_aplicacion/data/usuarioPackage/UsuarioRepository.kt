@@ -20,7 +20,7 @@ class UsuarioRepository {
         }
     }
 
-    // --- LEER (Todos - Para el CRUD) ---
+    // --- LEER (Todos)
     suspend fun listarUsuarios(): List<Usuario> {
         return try {
             api.listarUsuarios()

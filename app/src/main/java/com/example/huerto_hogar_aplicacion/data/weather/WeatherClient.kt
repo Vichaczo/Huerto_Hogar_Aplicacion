@@ -5,7 +5,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-// Definimos la interfaz aquí mismo para ir rápido
 interface OpenMeteoApi {
     @GET("v1/forecast?current_weather=true&daily=weathercode,temperature_2m_max&timezone=auto")
     suspend fun getWeather(

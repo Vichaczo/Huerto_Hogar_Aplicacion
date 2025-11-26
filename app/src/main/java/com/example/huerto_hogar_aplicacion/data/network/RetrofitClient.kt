@@ -6,12 +6,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // 1. CAMBIA LA IP CADA VEZ QUE INICIES EL LAB DE AWS.
-    // 2. IMPORTANTE: Mantén el "/api/" al final porque así lo definiste en application.properties
+    //  Cambiar ip cada vez que se inicie el lab de aws
     private const val BASE_URL = "http://54.81.202.30:8080/api/"
 
-    // Configuramos Gson para que entienda las fechas de Java (LocalDateTime)
-    // sin que la app se cierre inesperadamente.
     private val gson = GsonBuilder()
         .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         .create()
@@ -19,7 +16,7 @@ object RetrofitClient {
     val api: HuertoApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create(gson)) // Usamos nuestro Gson configurado
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(HuertoApi::class.java)
     }

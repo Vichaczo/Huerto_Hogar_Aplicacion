@@ -38,7 +38,6 @@ fun HistorialScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                // TÍTULO CORREGIDO Y COLOR CAFÉ
                 title = {
                     Text(
                         "Historial de Compras",
