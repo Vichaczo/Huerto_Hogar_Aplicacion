@@ -11,17 +11,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CarritoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistorialScreen(
     navController: NavController,
     homeViewModel: HomeViewModel,
-    carritoViewModel: CarritoViewModel
+    carritoViewModel: CarritoViewModel = viewModel()
 ) {
     val sessionState by homeViewModel.sessionState.collectAsState()
     val uid = (sessionState as? SessionState.LoggedIn)?.uid ?: ""
@@ -33,26 +35,45 @@ fun HistorialScreen(
     val historial by carritoViewModel.historial.collectAsState()
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Mis Compras Pasadas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(16.dp))
-
-        if (historial.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aún no tienes compras.")
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(historial) { orden ->
-                    Card(
-                        elevation = CardDefaults.cardElevation(2.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                    ) {
-                        Column(Modifier.padding(16.dp).fillMaxWidth()) {
-                            Text("Orden #${orden.id}", fontWeight = FontWeight.Bold)
-                            Text("Fecha: ${dateFormat.format(orden.fecha)}")
-                            Spacer(Modifier.height(4.dp))
-                            Text("Total Pagado: $${orden.total.toInt()}", color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                // TÍTULO CORREGIDO Y COLOR CAFÉ
+                title = {
+                    Text(
+                        "Historial de Compras",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5D4037) // Café
+                    )
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            if (historial.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Aún no tienes compras registradas.", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(historial) { orden ->
+                        Card(
+                            elevation = CardDefaults.cardElevation(2.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9)) // Fondo suave
+                        ) {
+                            Column(Modifier.padding(16.dp).fillMaxWidth()) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Orden #${orden.id}", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                    Text("$${orden.total.toInt()}", color = Color.Black, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Text("Fecha: ${dateFormat.format(orden.fecha)}", color = Color.DarkGray)
+                            }
                         }
                     }
                 }

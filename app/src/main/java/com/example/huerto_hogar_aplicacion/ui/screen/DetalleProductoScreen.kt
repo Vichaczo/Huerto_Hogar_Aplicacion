@@ -3,7 +3,9 @@ package com.example.huerto_hogar_aplicacion.ui.screen
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -44,51 +47,117 @@ fun DetalleProductoScreen(
     var cantidad by remember { mutableStateOf(1) }
     val context = LocalContext.current
 
-    Box(Modifier.fillMaxSize()) {
+    // FONDO CÁLIDO (Crema suave) en lugar de Blanco
+    Box(Modifier.fillMaxSize().background(Color(0xFFFFF8E1))) {
         if (isLoading || producto == null) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center))
+            CircularProgressIndicator(Modifier.align(Alignment.Center), color = Color(0xFF6D4C41))
         } else {
             val p = producto!!
             Column(
-                Modifier.fillMaxSize().padding(16.dp),
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AsyncImage(
-                    model = p.img,
-                    contentDescription = null,
-                    modifier = Modifier.height(250.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
+                // 1. TÍTULO CENTRADO EN CAFÉ
+                Text(
+                    text = p.nombre,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF5D4037), // Café Título
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
 
-                Text(p.nombre, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text("$${p.precio.toInt()}", fontSize = 24.sp, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
-
-                Spacer(Modifier.height(8.dp))
-
-                if (!p.descripcion.isNullOrEmpty()) {
-                    Text(p.descripcion, color = Color.Gray, fontSize = 16.sp)
+                // 2. IMAGEN
+                Card(
+                    shape = RoundedCornerShape(24.dp),
+                    elevation = CardDefaults.cardElevation(6.dp)
+                ) {
+                    AsyncImage(
+                        model = p.img ?: "https://via.placeholder.com/300",
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                        contentScale = ContentScale.Crop
+                    )
                 }
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(24.dp))
 
-                if (p.stock > 0) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)).padding(8.dp)
+                // 3. DESCRIPCIÓN
+                if (!p.descripcion.isNullOrEmpty()) {
+                    Text(
+                        text = p.descripcion,
+                        color = Color(0xFF4E342E), // Café oscuro
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 24.sp
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                // 4. CUADRO DE STOCK Y PRECIO
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Button(onClick = { if (cantidad > 1) cantidad-- }) { Text("-") }
-                        Text(text = "$cantidad", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
-                        Button(onClick = { if (cantidad < p.stock) cantidad++ }) { Text("+") }
+                        Text(
+                            text = "$${p.precio.toInt()}",
+                            fontSize = 28.sp,
+                            color = Color(0xFF2E7D32), // Verde Precio
+                            fontWeight = FontWeight.ExtraBold
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        if (p.stock > 0) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                FilledIconButton(
+                                    onClick = { if (cantidad > 1) cantidad-- },
+                                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color(0xFFEFEBE9)),
+                                    modifier = Modifier.size(44.dp)
+                                ) {
+                                    Text("-", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                }
+
+                                Text(
+                                    text = "$cantidad",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 30.dp),
+                                    color = Color(0xFF5D4037)
+                                )
+
+                                FilledIconButton(
+                                    onClick = { if (cantidad < p.stock) cantidad++ },
+                                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color(0xFF6D4C41)), // Café
+                                    modifier = Modifier.size(44.dp)
+                                ) {
+                                    Text("+", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Text("${p.stock} disponibles", fontSize = 12.sp, color = Color.Gray)
+                        } else {
+                            Text("AGOTADO", color = Color.Red, fontWeight = FontWeight.Bold)
+                        }
                     }
-                    Text("Disponible: ${p.stock}", fontSize = 12.sp, color = Color.Gray)
-                } else {
-                    Text("AGOTADO", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
 
                 Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(24.dp))
 
+                // 5. BOTÓN AGREGAR (Combinado)
                 Button(
                     onClick = {
                         if (isInvitado) {
@@ -100,10 +169,16 @@ fun DetalleProductoScreen(
                         }
                     },
                     enabled = p.stock > 0,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D4C41))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6D4C41), // Café Principal
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Agregar al Carrito - $${(p.precio * cantidad).toInt()}")
+                    Text("Agregar al Carrito", fontSize = 18.sp)
                 }
             }
         }

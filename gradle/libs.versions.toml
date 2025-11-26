@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 firebasebom = "33.1.1"
 services = "4.4.2"
 crashlytics = "3.0.2"
+uiText = "1.9.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-crashlytics = {module = "com.google.firebase:firebase-crashlytics"}
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 
 [plugins]

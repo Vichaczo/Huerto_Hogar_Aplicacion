@@ -54,6 +54,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui.text)
     val room_version = "2.8.1"
     implementation("androidx.room:room-runtime:${room_version}")
 
@@ -80,7 +81,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("io.coil-kt:coil-compose:2.4.0")
 
-
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     implementation("androidx.room:room-paging:${room_version}")
     implementation(libs.androidx.core.ktx)

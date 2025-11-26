@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.huerto_hogar_aplicacion.data.productoPackage.Producto
@@ -39,40 +40,77 @@ fun CatalogoScreen(
         viewModel.cargarProductos()
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Mercadito", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF6D4C41))
-
-        Spacer(Modifier.height(16.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(categorias) { cat ->
-                FilterChip(
-                    selected = (cat == categoriaActual),
-                    onClick = { viewModel.onCategoriaSelected(cat) },
-                    label = { Text(cat) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF81C784),
-                        selectedLabelColor = Color.White
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Mercadito",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF6D4C41), // Café
+                        fontSize = 26.sp
                     )
-                )
-            }
+                }
+            )
         }
-
-        Spacer(Modifier.height(16.dp))
-
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF6D4C41))
+    ) { padding ->
+        Column(
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            // FILTROS
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(categorias) { cat ->
+                    val isSelected = (cat == categoriaActual)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { viewModel.onCategoriaSelected(cat) },
+                        label = {
+                            Text(
+                                text = cat,
+                                color = if(isSelected) Color.White else Color(0xFF5D4037)
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFF6D4C41), // Café seleccionado
+                            containerColor = Color.White
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = Color(0xFF6D4C41)
+                        )
+                    )
+                }
             }
-        } else if (productos.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No hay productos en esta categoría.", color = Color.Gray)
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(productos) { producto ->
-                    ProductoItem(producto) {
-                        navController.navigate("detalle_producto/${producto.id}")
+
+            Spacer(Modifier.height(8.dp))
+
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF6D4C41))
+                }
+            } else if (productos.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay productos aquí 🌱", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(
+                        items = productos,
+                        key = { p -> p.id }
+                    ) { producto ->
+                        ProductoItem(producto) {
+                            navController.navigate("detalle_producto/${producto.id}")
+                        }
                     }
                 }
             }
@@ -83,35 +121,56 @@ fun CatalogoScreen(
 @Composable
 fun ProductoItem(producto: Producto, onDetailClick: () -> Unit) {
     Card(
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(3.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFAFA)),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
                 model = producto.img ?: "https://via.placeholder.com/150",
                 contentDescription = producto.nombre,
-                modifier = Modifier.size(64.dp).clip(CircleShape).background(Color.LightGray),
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFEFEBE9)),
                 contentScale = ContentScale.Crop
             )
 
             Spacer(Modifier.width(16.dp))
 
             Column(Modifier.weight(1f)) {
-                Text(producto.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("$${producto.precio.toInt()}", color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
-                Text("Stock: ${producto.stock}", fontSize = 12.sp, color = Color.Gray)
+                Text(
+                    text = producto.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF4E342E)
+                )
+                Text(
+                    text = "$${producto.precio.toInt()}",
+                    color = Color(0xFF2E7D32),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = if(producto.stock > 0) "Disponible" else "Agotado",
+                    fontSize = 12.sp,
+                    color = if(producto.stock > 0) Color.Gray else Color.Red
+                )
             }
 
             IconButton(
                 onClick = onDetailClick,
-                modifier = Modifier.background(Color(0xFF6D4C41), shape = CircleShape).size(36.dp)
+                modifier = Modifier
+                    .background(Color(0xFF6D4C41), shape = CircleShape)
+                    .size(40.dp)
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Ver Detalle", tint = Color.White)
+                Icon(Icons.Filled.Add, contentDescription = "Ver", tint = Color.White)
             }
         }
     }

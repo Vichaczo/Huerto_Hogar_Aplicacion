@@ -6,8 +6,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange // <--- ÍCONO NUEVO (Simboliza Historial/Pedidos)
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List // Cambiado desde History para evitar error
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +26,7 @@ import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.CarritoViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.HomeViewModel
 import com.example.huerto_hogar_aplicacion.ui.viewModelPackage.SessionState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarritoScreen(
     navController: NavController,
@@ -95,36 +96,39 @@ fun CarritoScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Mi Carrito", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                // CORRECCIÓN: Usamos Icons.Filled.List en lugar de History
-                IconButton(onClick = { navController.navigate("historial") }) {
-                    Icon(Icons.Filled.List, contentDescription = "Historial")
+            CenterAlignedTopAppBar(
+                title = { Text("Mi Carrito", fontWeight = FontWeight.Bold, color = Color(0xFF5D4037)) }, // Título Café
+                actions = {
+                    // --- BOTÓN HISTORIAL CORREGIDO ---
+                    IconButton(onClick = { navController.navigate("historial") }) {
+                        Icon(
+                            imageVector = Icons.Filled.DateRange, // Ícono de hoja de calendario/historial
+                            contentDescription = "Historial",
+                            tint = Color(0xFF5D4037) // Color Café
+                        )
+                    }
                 }
-            }
+            )
         },
         bottomBar = {
             if (items.isNotEmpty()) {
-                // CORRECCIÓN: Surface en Material 3 usa shadowElevation, no elevation
                 Surface(
-                    shadowElevation = 8.dp
+                    shadowElevation = 16.dp,
+                    color = Color.White
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Total:", fontSize = 20.sp)
-                            Text("$${total.toInt()}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
+                            Text("$${total.toInt()}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
                         }
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = { mostrarDialogoConfirmacion = true },
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D4C41))
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D4037)), // Café
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Procesar Compra")
+                            Text("Procesar Compra", fontSize = 18.sp)
                         }
                     }
                 }
@@ -133,12 +137,15 @@ fun CarritoScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             if (isLoading) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CircularProgressIndicator(Modifier.align(Alignment.Center), color = Color(0xFF2E7D32))
             } else if (items.isEmpty()) {
                 Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Tu carrito está vacío 🍃", fontSize = 18.sp, color = Color.Gray)
                     Spacer(Modifier.height(16.dp))
-                    Button(onClick = { navController.navigate("catalogo") }) {
+                    Button(
+                        onClick = { navController.navigate("catalogo") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                    ) {
                         Text("Ir a comprar")
                     }
                 }
@@ -169,29 +176,27 @@ fun CarritoItemCard(
     onDelete: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        // CORRECCIÓN: En Material 3 CardElevation se define así:
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // CORRECCIÓN: Usamos imagenUrl (el nombre correcto del modelo)
             AsyncImage(
                 model = item.producto.img ?: "https://via.placeholder.com/150",
                 contentDescription = item.producto.nombre,
-                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(8.dp)),
+                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
 
             Spacer(Modifier.width(16.dp))
 
             Column(Modifier.weight(1f)) {
-                Text(item.producto.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("Precio: $${item.producto.precio.toInt()}", fontSize = 12.sp, color = Color.Gray)
-                Text("Subtotal: $${(item.producto.precio * item.cantidad).toInt()}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF388E3C))
+                Text(item.producto.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF3E2723))
+                Text("Unitario: $${item.producto.precio.toInt()}", fontSize = 12.sp, color = Color.Gray)
+                Text("Subtotal: $${(item.producto.precio * item.cantidad).toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
             }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -205,7 +210,7 @@ fun CarritoItemCard(
                     }
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                    Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color(0xFFD32F2F))
                 }
             }
         }

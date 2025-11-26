@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProductoViewModel : ViewModel() {
-    // Opción A: Instancia directa para evitar errores de Factory en MainActivity
     private val api = RetrofitClient.api
 
     private val _allProductos = MutableStateFlow<List<Producto>>(emptyList())
@@ -20,10 +19,14 @@ class ProductoViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _categoriaSeleccionada = MutableStateFlow("Todos")
-    val categoriaSeleccionada: StateFlow<String> = _categoriaSeleccionada.asStateFlow()
+    // Categorías que se muestran como Chips (Filtros)
+    val categorias = listOf("Todo", "Frutas", "Verduras", "Snacks", "Especias", "Otros")
 
-    val categorias = listOf("Todos", "Frutas", "Verduras", "Semillas", "Herramientas")
+    // Categorías "Estándar" para saber qué excluir en "Otros"
+    private val categoriasEstandar = listOf("Frutas", "Verduras", "Snacks", "Especias")
+
+    private val _categoriaSeleccionada = MutableStateFlow("Todo")
+    val categoriaSeleccionada: StateFlow<String> = _categoriaSeleccionada.asStateFlow()
 
     private val _productoSeleccionado = MutableStateFlow<Producto?>(null)
     val productoSeleccionado: StateFlow<Producto?> = _productoSeleccionado.asStateFlow()
@@ -54,11 +57,22 @@ class ProductoViewModel : ViewModel() {
     }
 
     private fun filtrarPorCategoria(categoria: String) {
-        if (categoria == "Todos") {
-            _productosFiltrados.value = _allProductos.value
-        } else {
-            _productosFiltrados.value = _allProductos.value.filter {
-                it.categoria.equals(categoria, ignoreCase = true)
+        val todos = _allProductos.value
+
+        _productosFiltrados.value = when (categoria) {
+            "Todo" -> todos
+            "Otros" -> {
+                // Muestra productos cuya categoría NO esté en la lista estándar (ej: Herramientas)
+                todos.filter { prod ->
+                    val catProd = prod.categoria ?: ""
+                    // Verificamos si la categoría del producto existe en la lista estándar (ignorando mayúsculas)
+                    val esEstandar = categoriasEstandar.any { it.equals(catProd, ignoreCase = true) }
+                    !esEstandar // Si NO es estándar, va a "Otros"
+                }
+            }
+            else -> {
+                // Filtro normal (Frutas, Verduras, etc.)
+                todos.filter { it.categoria.equals(categoria, ignoreCase = true) }
             }
         }
     }
@@ -76,7 +90,6 @@ class ProductoViewModel : ViewModel() {
                     _productoSeleccionado.value = remoto
                 }
             } catch (e: Exception) {
-                // Manejar error si es necesario
             } finally {
                 _isLoading.value = false
             }
